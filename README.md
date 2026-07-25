@@ -1,128 +1,170 @@
-# Hy3 研究助手
+# Hy3 MCP Server
 
-基于腾讯混元 Hy3 大模型的智能研究助手，提供**深度研究**、**代码分析**、**文档问答**三大核心功能。
+基于 MCP（Model Context Protocol）协议，封装腾讯混元 Hy3 大模型能力的智能工具集。
 
-## 项目简介
+## 特性
 
-本项目是腾讯犀牛鸟实战计划 [Issue #4](https://github.com/Tencent-Hunyuan/Hy3/issues/4) 的完整实现。所有智能任务（研究规划、报告生成、代码分析、文档问答）均通过调用 **Hy3 API**（OpenAI 兼容接口）完成，不涉及模型训练、微调或本地推理。
+- **一键安装，即插即用** — `setup.bat` / `setup.sh` 自动化安装
+- **5 个 MCP 工具** — 深度研究、代码审查、文档问答、数据分析、通用对话
+- **4 个 MCP 客户端支持** — CodeBuddy / Cursor / Claude Desktop / Cline
+- **双配置方式** — 环境变量 + `.env` 文件，灵活适配
+- **自动重试** — 指数退避，应对网络波动
+- **多编码支持** — 自动检测 UTF-8 / GBK / GB2312
+- **双层搜索降级** — DuckDuckGo HTML → Instant Answer API
 
-### Hy3 在项目中的角色
+## 工具能力
 
-| 功能模块 | Hy3 的角色 |
-|---------|-----------|
-| 深度研究 | 研究计划制定 → 搜索关键词生成 → 长文报告撰写 → 执行摘要提炼 |
-| 代码分析 | 代码理解、Bug 检测、性能优化建议、安全审计、质量评分 |
-| 文档问答 | 多文档阅读理解、证据驱动的精准问答 |
+| 工具 | 功能 | 输入 | 典型场景 |
+|------|------|------|----------|
+| `hy3_research` | 深度研究 | 主题 + 搜索深度 | 行业分析、技术调研 |
+| `hy3_code_review` | 代码审查 | 代码 + 语言 + 审查重点 | Bug 检测、安全审计 |
+| `hy3_doc_qa` | 文档问答 | 文件路径 + 问题 | PDF/TXT/MD/代码解读 |
+| `hy3_data_analyze` | 数据分析 | CSV/JSON + 分析目标 | 数据洞察、趋势发现 |
+| `hy3_chat` | 通用对话 | 消息 + 系统提示词 | 写作、翻译、解释 |
+
+## 一键安装
+
+### 1. 克隆并进入目录
+
+```bash
+git clone https://github.com/your-org/hy3-mcp-server.git
+cd hy3-mcp-server
+```
+
+### 2. 配置 API Key（二选一）
+
+**方式一：环境变量**
+```bash
+# Windows (PowerShell)
+$env:HY3_API_KEY="你的API密钥"
+
+# macOS/Linux
+export HY3_API_KEY="你的API密钥"
+```
+
+**方式二：.env 文件**
+```bash
+cp .env.example .env
+# 编辑 .env 文件，填入你的 API Key
+```
+
+### 3. 运行安装脚本
+
+```bash
+# Windows
+setup.bat
+
+# macOS / Linux
+bash setup.sh
+```
+
+## 客户端配置
+
+安装完成后，根据你的 MCP 客户端选择对应配置：
+
+### CodeBuddy
+
+在 CodeBuddy 的 MCP 设置中添加：
+
+```json
+{
+  "mcpServers": {
+    "hy3-assistant": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["src/server.py"],
+      "cwd": "/your/path/to/hy3-mcp-server",
+      "env": {
+        "HY3_API_KEY": "你的API密钥",
+        "HY3_MODEL": "hunyuan-pro"
+      }
+    }
+  }
+}
+```
+
+### Cursor
+
+在项目根目录创建 `.cursor/mcp.json`：
+
+```json
+{
+  "mcpServers": {
+    "hy3-assistant": {
+      "command": "python",
+      "args": ["src/server.py"],
+      "cwd": "/your/path/to/hy3-mcp-server",
+      "env": {
+        "HY3_API_KEY": "你的API密钥",
+        "HY3_MODEL": "hunyuan-pro"
+      }
+    }
+  }
+}
+```
+
+详细配置也可参考 `configs/` 目录下的各客户端 JSON 模板。
 
 ## 项目结构
 
 ```
-hy3-research-assistant/
-├── backend/
-│   ├── main.py            # FastAPI 服务器（6 个 API 端点，全部支持 SSE 流式输出）
-│   ├── hy3_client.py      # Hy3 API 客户端封装（OpenAI 兼容接口）
-│   ├── tools.py            # 工具函数（网页搜索、PDF/DOCX/代码文件解析）
-│   └── requirements.txt   # Python 依赖
-├── frontend/
-│   └── index.html          # 现代化 Web 前端（暗色主题、流式渲染、Markdown 展示）
-├── .env.example            # 环境变量配置模板
+hy3-mcp-server/
+├── src/
+│   ├── __init__.py          # 包信息
+│   ├── server.py             # MCP Server 主程序（5 个 Tool）
+│   └── hy3_client.py         # Hy3 API 客户端封装
+├── configs/                  # 各客户端 MCP 配置模板
+│   ├── codebuddy-mcp.json
+│   ├── cursor-mcp.json
+│   ├── claude-mcp.json
+│   └── cline-mcp.json
+├── tests/
+│   └── test_hy3_client.py    # 单元测试
+├── .env.example              # 环境变量模板
 ├── .gitignore
-├── start.bat               # Windows 一键启动脚本
+├── requirements.txt          # Python 依赖
+├── setup.bat                 # Windows 一键安装
+├── setup.sh                  # Linux/macOS 一键安装
 └── README.md
 ```
 
-## 快速开始
+## 环境变量
 
-### 环境要求
+| 变量 | 必填 | 默认值 | 说明 |
+|------|------|--------|------|
+| `HY3_API_KEY` | ✅ 必填 | - | Hy3 大模型 API 密钥 |
+| `HY3_BASE_URL` | 可选 | `https://api.hunyuan.cloud.tencent.com/v1` | API 基础端点 |
+| `HY3_MODEL` | 可选 | `hunyuan-pro` | 使用的模型名称 |
 
-- Python 3.9+
-- 有效的 Hy3 API Key
+> 💡 配置方式：支持环境变量和 `.env` 文件两种配置（环境变量优先级更高）
 
-### 安装与启动
+## 数据源
+
+| 类型 | 说明 |
+|------|------|
+| **网络搜索** | DuckDuckGo 双层搜索（HTML 解析 → Instant Answer API 降级） |
+| **本地文件** | 支持 .txt .md .py .js .ts .json .csv .html .css .yaml .yml .toml .ini .cfg .conf .sh .bat .sql .java .go .rs .c .cpp .h 等文本格式 |
+| **核心推理** | 所有 AI 分析 / 生成 / 审查能力由腾讯混元 Hy3 大模型（OpenAI 兼容接口）提供 |
+
+## 技术细节
+
+- **MCP 框架**: FastMCP >= 2.0.0（stdio 传输）
+- **AI 推理**: 腾讯混元 Hy3 大模型（OpenAI 兼容接口：`https://api.hunyuan.cloud.tencent.com/v1`）
+- **搜索降级策略**:
+  1. DuckDuckGo HTML 搜索（完整解析标题、链接、摘要）
+  2. DuckDuckGo Instant Answer API（结构化数据）
+- **重试机制**: 指数退避（1s → 2s → 4s），最多 3 次重试
+- **配置方式**: 支持环境变量和 `.env` 文件两种配置（环境变量优先级更高）
+- **编码兼容**: 自动检测 UTF-8 → GBK → GB2312 → Latin-1
+- **安全**: API Key 通过环境变量或 .env 文件传入，`.gitignore` 已排除 `.env`
+
+## 运行测试
 
 ```bash
-# 1. 克隆项目
-cd hy3-research-assistant
-
-# 2. 配置 API 密钥
-# Windows
-set HY3_API_KEY=你的API密钥
-# 或复制 .env.example 为 .env 并填入密钥
-
-# 3. 安装依赖
-cd backend
-pip install -r requirements.txt
-
-# 4. 启动服务
-python main.py
-# 服务运行在 http://localhost:8000
+cd tests
+python -m pytest test_hy3_client.py -v
 ```
 
-打开浏览器访问 `http://localhost:8000` 即可使用。
+## 许可证
 
-### 可选环境变量
-
-| 变量名 | 说明 | 默认值 |
-|--------|------|--------|
-| `HY3_API_KEY` | Hy3 API 密钥（必填） | - |
-| `HY3_BASE_URL` | API 端点地址 | `https://api.hunyuan.cloud.tencent.com/v1` |
-| `HY3_MODEL` | 模型名称 | `hunyuan-pro` |
-| `PORT` | 服务端口 | `8000` |
-
-## 三大功能
-
-### 🔬 深度研究 (Deep Research)
-
-输入研究主题，Hy3 将自动完成：
-
-1. **研究规划** — 将主题拆解为子问题，生成搜索关键词
-2. **资料搜索** — 自动搜索相关网页资料
-3. **报告撰写** — 基于搜索结果生成 1500-3000 字专业研究报告
-4. **执行摘要** — 提炼核心发现的简明摘要
-
-### 💻 代码分析 (Code Analysis)
-
-粘贴代码或上传代码文件，Hy3 将提供：
-
-- 代码概览与核心功能解读
-- 执行逻辑与关键流程分析
-- 潜在 Bug、性能隐患、安全问题诊断
-- 具体优化建议与最佳实践
-- 1-10 分代码质量评分
-
-### 📚 文档问答 (Document Q&A)
-
-上传多个文档（支持 PDF、DOCX、TXT、代码文件等），向 Hy3 提问：
-
-- 基于文档内容精准回答
-- 引用原始段落作为证据
-- 明确标注信息缺失情况
-
-## API 端点
-
-| 端点 | 方法 | 说明 |
-|------|------|------|
-| `/` | GET | 前端页面 |
-| `/health` | GET | 服务健康检查 |
-| `/api/research` | POST | 深度研究（流式） |
-| `/api/analyze-code` | POST | 粘贴代码分析（流式） |
-| `/api/analyze-code-file` | POST | 上传代码文件分析（流式） |
-| `/api/qa-documents` | POST | 多文档问答（流式） |
-
-所有智能端点均使用 Server-Sent Events (SSE) 实现流式输出，支持前端实时渲染。
-
-## 技术栈
-
-- **后端**: FastAPI + OpenAI SDK + Uvicorn
-- **前端**: 原生 HTML/CSS/JS + marked.js（Markdown 渲染）
-- **模型**: 腾讯混元 Hy3（通过 OpenAI 兼容接口调用）
-- **工具**: DuckDuckGo 网页搜索、PyPDF2、python-docx
-
-## CodeBuddy 协作说明
-
-本项目借助 CodeBuddy AI 编程助手完成：
-
-- **协同设计**：AI 参与整体架构规划、功能模块拆解、前后端交互设计
-- **代码生成**：AI 编写了 `backend/main.py`（服务器和所有提示词工程）、`backend/hy3_client.py`（API 客户端封装）、`backend/tools.py`（搜索和文件解析）、`frontend/index.html`（完整前端界面）
-- **文档撰写**：AI 生成了 README、配置模板、启动脚本
-- **代码审查与打磨**：AI 辅助进行了语法检查、中英文翻译、结构优化
+MIT License
