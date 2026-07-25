@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "hy3-research-assistant"
+version = "1.0.0"
+description = "基于腾讯混元 Hy3 大模型的智能研究助手，提供深度研究、代码分析、文档问答三大核心功能。"
+authors = [{ name = "Hy3 Research Assistant Team" }]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.9"
+keywords = ["hy3", "hunyuan", "research", "llm", "ai-assistant", "deep-research"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn>=0.34.0",
+    "openai>=1.50.0",
+    "python-multipart>=0.0.18",
+    "aiofiles>=24.0.0",
+    "PyPDF2>=3.0.0",
+    "python-docx>=1.1.0",
+    "httpx>=0.28.0",
+    "pydantic>=2.10.0",
+    "beautifulsoup4>=4.12.0",
+    "lxml>=5.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+    "black>=24",
+]
+
+[project.urls]
+Homepage = "https://github.com/Tencent-Hunyuan/Hy3"
+Issues = "https://github.com/Tencent-Hunyuan/Hy3/issues"
+
+[project.scripts]
+hy3-research = "hy3_research.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["backend"]
+
+[tool.setuptools.package-dir]
+"hy3_research" = "backend"
