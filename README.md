@@ -56,17 +56,21 @@ hy3-mcp-server/
 
 **Windows：**
 ```batch
-cd hy3-mcp-server
 set HY3_API_KEY=你的API密钥
 setup.bat
 ```
 
 **Linux / macOS：**
 ```bash
-cd hy3-mcp-server
 export HY3_API_KEY=你的API密钥
 bash setup.sh
 ```
+
+> 💡 也可以通过创建 `.env` 文件配置 API Key（无需每次手动设置环境变量）：
+> ```bash
+> echo HY3_API_KEY=你的API密钥 > .env
+> echo HY3_MODEL=hunyuan-pro >> .env
+> ```
 
 或手动安装：
 ```bash
@@ -192,14 +196,19 @@ pip install -r requirements.txt
 
 ## 技术细节
 
-- **MCP 协议**: 使用 Python FastMCP 框架，遵循标准 stdio 传输模式
+- **MCP 协议**: 使用 Python `FastMCP` 框架，遵循标准 stdio 传输模式
 - **Hy3 调用**: 通过 OpenAI 兼容接口，支持 `HY3_API_KEY`、`HY3_BASE_URL`、`HY3_MODEL` 环境变量
-- **数据源**: DuckDuckGo 网页搜索（无需额外 API Key）、本地文件读取
-- **安全**: API Key 仅通过环境变量传入，代码中无硬编码
+- **配置方式**: 支持环境变量和 `.env` 文件两种配置（环境变量优先级更高）
+- **数据源**: DuckDuckGo 网页搜索（通过 `httpx` 直接调用 HTML 和 Instant Answer API，无需额外搜索库或 API Key）
+- **安全**: API Key 仅通过环境变量或 `.env` 文件传入，代码中无硬编码
 
 ---
 
 ## 环境变量
+
+支持两种配置方式（优先级：环境变量 > `.env` 文件）：
+
+### 方式一：环境变量
 
 | 变量名 | 必填 | 默认值 | 说明 |
 |--------|------|--------|------|
@@ -207,15 +216,26 @@ pip install -r requirements.txt
 | `HY3_BASE_URL` | ❌ | `https://api.hunyuan.cloud.tencent.com/v1` | API 端点 |
 | `HY3_MODEL` | ❌ | `hunyuan-pro` | 模型名称 |
 
+### 方式二：`.env` 文件
+
+在项目根目录创建 `.env` 文件：
+
+```env
+HY3_API_KEY=你的API密钥
+HY3_MODEL=hunyuan-pro
+# HY3_BASE_URL=https://api.hunyuan.cloud.tencent.com/v1  # 可选
+```
+
+> ⚠️ 请勿将 `.env` 文件提交到 Git 仓库（已在 `.gitignore` 中排除）。
+
 ---
 
 ## 手动测试
 
 启动 MCP Server 进行本地验证：
 ```bash
-cd src
 export HY3_API_KEY=你的API密钥
-python server.py
+python src/server.py
 ```
 
 或使用 MCP Inspector 调试：
