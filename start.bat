@@ -9,7 +9,7 @@ cd /d "%~dp0"
 
 REM 优先从 .env 文件加载 HY3_API_KEY
 if exist ".env" (
-    for /f "tokens=1,2 delims==" %%a in (.env) do (
+    for /f "usebackq tokens=1,* delims==" %%a in (".env") do (
         if "%%a"=="HY3_API_KEY" set HY3_API_KEY=%%b
     )
 )
