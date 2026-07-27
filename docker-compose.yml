@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  hy3-research:
+    build: .
+    container_name: hy3-research-assistant
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - HY3_API_KEY=${HY3_API_KEY}
+      - HY3_BASE_URL=${HY3_BASE_URL:-https://api.hunyuan.cloud.tencent.com/v1}
+      - HY3_MODEL=${HY3_MODEL:-hunyuan-pro}
+      - PORT=8000
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+    # 不需要 GPU，以下配置已注释
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]

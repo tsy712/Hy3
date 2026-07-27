@@ -2,6 +2,61 @@
 
 基于腾讯混元 Hy3 大模型的智能研究助手，提供**深度研究**、**代码分析**、**文档问答**三大核心功能。
 
+> ⚡ **本项目不需要 GPU、不需要 CUDA、不需要安装 PyTorch / DeepSpeed / Flash-Attention。**  
+> 所有 AI 能力通过云端 API 调用，本地只需 Python 3.9+ 即可运行。
+
+---
+
+## 🚀 一键运行指南
+
+**别跑！先花 30 秒把项目跑起来再说——后续内容随时能看，卡在环境上就亏了。**
+
+### 方式一：Docker（零配置，三行命令）
+
+```bash
+git clone https://github.com/Tencent-Hunyuan/Hy3.git && cd hy3-research-assistant
+cp .env.example .env                          # 然后用记事本打开 .env，填入 HY3_API_KEY
+docker-compose up -d                          # 打开 http://localhost:8000
+```
+
+> **[安装 Docker Desktop](https://docs.docker.com/get-docker/) 即可，不需要 NVIDIA Container Toolkit。**
+
+### 方式二：pip（一行安装）
+
+```bash
+pip install -e . && hy3-research               # 访问 http://localhost:8000
+```
+
+### 方式三：Windows 双击
+
+```bash
+.\start.bat                                    # 双击或终端运行即可
+```
+
+---
+
+### 常见问题 30 秒速查
+
+<details>
+<summary><b>我没 GPU 能跑吗？</b></summary>
+
+**能！** 本项目不跑本地模型，只发 HTTP 请求调用云端 API。核显笔记本完全够用。
+</details>
+
+<details>
+<summary><b>需要装 CUDA / PyTorch 吗？</b></summary>
+
+**不需要。** 11 个轻量依赖（FastAPI + OpenAI SDK + 文件解析），总计 ~80 MB。跟 deepspeed / flash-attn 没关系。
+</details>
+
+<details>
+<summary><b>docker-compose 报错？</b></summary>
+
+试 `docker compose up -d`（无横杠），新版 Docker 内置。
+</details>
+
+---
+
 ## 项目简介
 
 本项目是腾讯犀牛鸟实战计划 [Issue #4](https://github.com/Tencent-Hunyuan/Hy3/issues/4) 的完整实现。所有智能任务（研究规划、报告生成、代码分析、文档问答）均通过调用 **Hy3 API**（OpenAI 兼容接口）完成，不涉及模型训练、微调或本地推理。
@@ -14,10 +69,26 @@
 | 代码分析 | 代码理解、Bug 检测、性能优化建议、安全审计、质量评分 |
 | 文档问答 | 多文档阅读理解、证据驱动的精准问答 |
 
+---
+
+## 预配置文件一览
+
+| 文件 | 说明 | 你需要做什么 |
+|------|------|-------------|
+| `.env.example` | [环境变量模板](.env.example) | 复制为 `.env`，填入 `HY3_API_KEY` |
+| `backend/requirements.txt` | [11 个轻量依赖](backend/requirements.txt) | 无需修改，pip 自动安装 |
+| `docker-compose.yml` | Docker 编排文件 | 无需修改，开箱即用 |
+| `Dockerfile` | 容器镜像构建文件 | 无需修改 |
+| `start.bat` | Windows 双击启动脚本 | 无需修改 |
+
+---
+
 ## 项目结构
 
 ```
 hy3-research-assistant/
+├── Dockerfile              # 容器镜像构建文件
+├── docker-compose.yml      # Docker 一键编排文件
 ├── backend/
 │   ├── main.py            # FastAPI 服务器（6 个 API 端点，全部支持 SSE 流式输出）
 │   ├── hy3_client.py      # Hy3 API 客户端封装（OpenAI 兼容接口）
@@ -214,7 +285,8 @@ cp .env.example .env          # macOS / Linux
 
 ### 三、安装与启动
 
-**方式一：pip 安装（推荐，支持命令行启动）**
+<details open>
+<summary><b>方式一：pip 安装（推荐，支持命令行启动）</b></summary>
 
 ```bash
 # === Windows (PowerShell) ===
@@ -232,7 +304,10 @@ hy3-research
 # 服务运行在 http://localhost:8000
 ```
 
-**方式二：手动安装（不创建命令行入口）**
+</details>
+
+<details>
+<summary><b>方式二：手动安装（不创建命令行入口）</b></summary>
 
 ```bash
 # === Windows (PowerShell) ===
@@ -252,12 +327,17 @@ python main.py
 # 服务运行在 http://localhost:8000
 ```
 
-**方式三：一键脚本（Windows）**
+</details>
+
+<details>
+<summary><b>方式三：一键脚本（Windows）</b></summary>
 
 ```bash
 # 双击 start.bat 或在终端中运行：
 .\start.bat
 ```
+
+</details>
 
 安装完成后，打开浏览器访问 `http://localhost:8000` 即可使用。
 
