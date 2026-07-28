@@ -1,0 +1,97 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]: "[F]"
+    - generic [ref=e4]: "[S]"
+    - generic [ref=e5]: "[T]"
+    - generic [ref=e6]: "[C]"
+  - generic [ref=e7]:
+    - generic [ref=e8]:
+      - generic [ref=e9]: hy3-research.py
+      - generic [ref=e10]: "*"
+      - generic [ref=e11]: Hy3 MCP
+      - generic [ref=e12]: Connected
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - generic [ref=e16]: hy3-research.py
+          - generic [ref=e17]: main.py
+        - generic [ref=e18]:
+          - generic [ref=e19]: 1import asyncio
+          - generic [ref=e20]: 2from hy3_mcp import Hy3Tools
+          - generic [ref=e21]: "3"
+          - generic [ref=e22]: 4# CodeBuddy + Hy3 Deep Research
+          - generic [ref=e23]: "5async def deep_research(topic: str):"
+          - generic [ref=e24]: "6 # Step 1: Hy3 multi-source search"
+          - generic [ref=e25]: 7 results = await Hy3Tools.web_search(topic)
+          - generic [ref=e26]: "8"
+          - generic [ref=e27]: "9 # Step 2: Hy3 AI analysis"
+          - generic [ref=e28]: 10 report = await Hy3Tools.generate_report(results)
+          - generic [ref=e29]: 11 return report
+          - generic [ref=e30]: "12"
+          - generic [ref=e31]: "13# CodeBuddy AI: run this for me!"
+          - generic [ref=e32]: 14result = asyncio.run(deep_research("quantum computing"))
+          - generic [ref=e33]: "15"
+          - generic [ref=e34]: 16# Architecture
+          - generic [ref=e35]: 17# CodeBuddy <-> MCP Protocol <-> Hy3 MCP Server <-> Hy3 API
+          - generic [ref=e36]: 18# <-> DuckDuckGo Search
+      - generic [ref=e37]:
+        - generic [ref=e38]:
+          - text: CodeBuddy AI
+          - generic [ref=e39]: "* Online"
+          - generic [ref=e40]: Hy3 MCP
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - generic [ref=e43]: "[User] User"
+            - text: Research the latest advances in quantum computing
+          - generic [ref=e44]:
+            - generic [ref=e45]: "[Bot] CodeBuddy (Hy3)"
+            - text: Using Hy3 MCP tools for deep research.
+            - generic [ref=e46]:
+              - generic [ref=e47]: hy3_web_search
+              - text: "Keyword: quantum computing latest 2025 · 10 results"
+          - generic [ref=e48]:
+            - generic [ref=e49]: "[Bot] CodeBuddy (Hy3)"
+            - generic [ref=e50]:
+              - generic [ref=e51]: hy3_web_search
+              - text: "Keyword: quantum computing breakthrough 2025 · 10 results (EN)"
+          - generic [ref=e52]:
+            - generic [ref=e53]: "[Bot] CodeBuddy (Hy3)"
+            - text: "Loading: searching and organizing..."
+          - generic [ref=e54]:
+            - generic [ref=e55]: "[Bot] CodeBuddy (Hy3)"
+            - generic [ref=e56]:
+              - generic [ref=e57]: hy3_generate_report
+              - text: Based on 20 search results · Academic style
+          - generic [ref=e58]:
+            - generic [ref=e59]: "[Bot] CodeBuddy (Hy3)"
+            - text: "Loading: generating report..."
+          - generic [ref=e60]:
+            - generic [ref=e61]: "[Bot] CodeBuddy (Hy3)"
+            - generic [ref=e62]:
+              - 'heading "Quantum Computing: Latest Advances" [level=4] [ref=e63]'
+              - paragraph [ref=e64]:
+                - strong [ref=e65]: 1. Error Correction Milestone
+                - text: "Google Quantum AI achieved surface code logical qubit threshold: 10^-3 physical -> 10^-9 logical error rate"
+              - paragraph [ref=e66]:
+                - strong [ref=e67]: 2. Qubit Count Leap
+                - text: "IBM Condor: 1,121 qubits · Atom Computing: 1,225 · QuEra: 256 logical qubits"
+              - paragraph [ref=e68]:
+                - strong [ref=e69]: 3. Hybrid Quantum-Classical
+                - text: NVIDIA CUDA-Q · Breakthroughs in drug discovery & materials science
+              - paragraph [ref=e70]:
+                - strong [ref=e71]: 4. Quantum Networks
+                - text: USTC 1,200km QKD record · Quantum internet prototype
+          - generic [ref=e72]:
+            - generic [ref=e73]: "[Bot] CodeBuddy (Hy3)"
+            - text: "[OK]"
+            - strong [ref=e74]: Report complete!
+            - text: "4 key areas: Error correction, Capacity, Hybrid computing, Quantum networks Saved: reports/quantum-computing-2025.md"
+          - generic [ref=e75]:
+            - generic [ref=e76]: "[User] User"
+            - text: Great! Save it and create a PPT summary
+          - generic [ref=e77]:
+            - generic [ref=e78]: "[Bot] CodeBuddy (Hy3)"
+            - text: Done! Report saved and PPT outline created. [OK] reports/quantum-computing-2025.md [OK] ppt/quantum-computing-summary.pptx
+        - generic [ref=e80]:
+          - textbox [disabled] [ref=e81]: Research quantum computing advances
+          - generic [ref=e82]: "[>]"

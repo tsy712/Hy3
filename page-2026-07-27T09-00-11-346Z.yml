@@ -1,0 +1,74 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - heading "[Study] Hy3 Research Assistant" [level=1] [ref=e3]
+    - paragraph [ref=e4]: AI-Powered Deep Research Assistant · Built on Tencent Hunyuan Hy3
+    - generic [ref=e5]:
+      - textbox [disabled] [ref=e6]: Latest advances in quantum computing...
+      - button "Start Research" [ref=e7] [cursor=pointer]
+    - generic [ref=e8]:
+      - generic [ref=e9]: Hy3 Powered
+      - generic [ref=e10]: FastAPI
+      - generic [ref=e11]: Docker
+      - generic [ref=e12]: Data Viz
+      - generic [ref=e13]: Multi-Source Search
+  - generic [ref=e14]:
+    - heading "Core Features" [level=2] [ref=e15]
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]: "[S]"
+        - heading "Smart Multi-Source Search" [level=3] [ref=e19]
+        - paragraph [ref=e20]: Integrated DuckDuckGo search engine, automatically retrieves from multiple sources for comprehensive coverage
+      - generic [ref=e21]:
+        - generic [ref=e22]: "[AI]"
+        - heading "Hy3 Deep Analysis" [level=3] [ref=e23]
+        - paragraph [ref=e24]: Powered by Tencent Hunyuan Hy3 LLM for deep semantic understanding and structured report generation
+      - generic [ref=e25]:
+        - generic [ref=e26]: "[R]"
+        - heading "Structured Reports" [level=3] [ref=e27]
+        - paragraph [ref=e28]: Auto-generates Markdown reports with executive summary, detailed analysis, and conclusions
+      - generic [ref=e29]:
+        - generic [ref=e30]: "[W]"
+        - heading "Web Visualization" [level=3] [ref=e31]
+        - paragraph [ref=e32]: Modern web UI with streaming output, progress tracking, and history management
+      - generic [ref=e33]:
+        - generic [ref=e34]: "[M]"
+        - heading "MCP Protocol Support" [level=3] [ref=e35]
+        - paragraph [ref=e36]: Works as MCP Server, integrates with CodeBuddy and other AI clients
+      - generic [ref=e37]:
+        - generic [ref=e38]: "[D]"
+        - heading "One-Click Deploy" [level=3] [ref=e39]
+        - paragraph [ref=e40]: Supports pip install and Docker containerized deployment, ready to use
+  - generic [ref=e41]:
+    - heading "Workflow" [level=2] [ref=e42]
+    - generic [ref=e43]:
+      - generic [ref=e44]:
+        - generic [ref=e45]: "1"
+        - text: Enter Topic
+      - generic [ref=e46]: "[>]"
+      - generic [ref=e47]:
+        - generic [ref=e48]: "2"
+        - text: AI Decomposition
+      - generic [ref=e49]: "[>]"
+      - generic [ref=e50]:
+        - generic [ref=e51]: "3"
+        - text: Multi-Source Search
+      - generic [ref=e52]: "[>]"
+      - generic [ref=e53]:
+        - generic [ref=e54]: "4"
+        - text: Hy3 Deep Analysis
+      - generic [ref=e55]: "[>]"
+      - generic [ref=e56]:
+        - generic [ref=e57]: "5"
+        - text: Generate Report
+  - generic [ref=e58]:
+    - heading "Tech Stack" [level=2] [ref=e59]
+    - generic [ref=e60]:
+      - generic [ref=e61]: Python 3.9+
+      - generic [ref=e63]: FastAPI
+      - generic [ref=e65]: Tencent Hy3
+      - generic [ref=e67]: DuckDuckGo
+      - generic [ref=e69]: Docker
+      - generic [ref=e71]: MCP Protocol
+      - generic [ref=e73]: Uvicorn
+      - generic [ref=e75]: SSE Streaming
+  - generic [ref=e77]: Hy3 Research Assistant · Tencent Open Source Talent Program · MIT License

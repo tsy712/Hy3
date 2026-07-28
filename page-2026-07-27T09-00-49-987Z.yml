@@ -1,0 +1,76 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - heading "[Plug] Hy3 MCP Server · AI Smart Tool Suite" [level=1] [ref=e3]
+    - paragraph [ref=e4]: MCP Protocol · Tencent Hunyuan Hy3 · One-Click Install · Plug & Play
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - heading "Install & Config" [level=3] [ref=e7]
+      - generic [ref=e8]:
+        - generic [ref=e9]: $ pip install -e .
+        - generic [ref=e10]: Installing dependencies...
+        - generic [ref=e11]: "[OK] hy3-mcp-server installed!"
+        - generic [ref=e12]: $ hy3-mcp
+        - generic [ref=e13]: Launching Hy3 MCP Server...
+        - generic [ref=e14]: "SSE endpoint: http://localhost:8080/sse"
+        - generic [ref=e15]: 4 tools registered
+        - generic [ref=e16]: "[OK] Server ready, waiting for AI clients..."
+    - generic [ref=e17]:
+      - heading "Supported AI Clients" [level=3] [ref=e18]
+      - generic [ref=e19]:
+        - generic [ref=e20]: "[OK] CodeBuddy"
+        - generic [ref=e21]: "[OK] Cursor"
+        - generic [ref=e22]: "[OK] Claude Desktop"
+        - generic [ref=e23]: "[OK] Cline"
+        - generic [ref=e24]: Continue
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - generic [ref=e27]: "1"
+          - text: Config MCP
+        - generic [ref=e28]:
+          - generic [ref=e29]: "2"
+          - text: Start Server
+        - generic [ref=e30]:
+          - generic [ref=e31]: "3"
+          - text: Connect Client
+        - generic [ref=e32]:
+          - generic [ref=e33]: "4"
+          - text: Ready to Use
+  - generic [ref=e34]:
+    - heading "Registered MCP Tools" [level=3] [ref=e35]
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - generic [ref=e38]: "[S]"
+        - generic [ref=e39]:
+          - generic [ref=e40]: hy3_web_search
+          - generic [ref=e41]: Hy3-powered intelligent web search with multi-source retrieval
+      - generic [ref=e42]:
+        - generic [ref=e43]: "[C]"
+        - generic [ref=e44]:
+          - generic [ref=e45]: hy3_code_analysis
+          - generic [ref=e46]: "AI deep code review: bug detection, performance, security audit"
+      - generic [ref=e47]:
+        - generic [ref=e48]: "[D]"
+        - generic [ref=e49]:
+          - generic [ref=e50]: hy3_doc_qa
+          - generic [ref=e51]: RAG document Q&A with vector-based precise content retrieval
+      - generic [ref=e52]:
+        - generic [ref=e53]: "[I]"
+        - generic [ref=e54]:
+          - generic [ref=e55]: hy3_image_gen
+          - generic [ref=e56]: "AI image generation: text-to-image, image-to-image, style transfer"
+  - generic [ref=e57]:
+    - 'heading "Demo: AI Client Using Hy3 MCP Tools" [level=3] [ref=e58]'
+    - generic [ref=e59]:
+      - generic [ref=e60]:
+        - generic [ref=e61]: "[User] User"
+        - text: Help me research the latest advances in quantum computing
+      - generic [ref=e62]:
+        - generic [ref=e63]: "[Bot] AI Assistant (Hy3)"
+        - text: Sure! Let me search for relevant information...
+        - generic [ref=e64]: hy3_web_search
+        - generic [ref=e65]: hy3_web_search (EN)
+      - generic [ref=e66]:
+        - generic [ref=e67]: "[Bot] AI Assistant (Hy3)"
+        - strong [ref=e68]: Quantum Computing Research Report
+        - text: "1. Error Correction Breakthrough First milestone achieved: error rate decreases as qubit count increases. Surface code logical qubit: 10^-3 physical -> 10^-9 logical error rate 2. Commercial Quantum Processors IBM Condor: 1,121 qubits · Atom Computing: 1,225 neutral atom array 3. Quantum-Classical Hybrid Computing NVIDIA CUDA-Q platform for heterogeneous quantum-classical workflows"
+        - generic [ref=e69]: "[OK] Research Complete"
