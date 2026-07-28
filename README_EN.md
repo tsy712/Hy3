@@ -1,174 +1,184 @@
-# Hy3 MCP Server
+# Hy3 Research Assistant
 
-<p align="center">
-  <a href="README.md">🇨🇳 中文</a> · <strong>🇺🇸 English</strong>
-</p>
+An intelligent research assistant powered by Tencent Hunyuan Hy3 model, offering **Deep Research**, **Code Analysis**, and **Document Q&A**.
 
-A collection of intelligent tools based on the MCP (Model Context Protocol) that wrap the capabilities of Tencent Hunyuan Hy3 large model.
+## Overview
 
-## Features
+This project is the complete implementation of Tencent Rhino-Bird Open Source Program [Issue #4](https://github.com/Tencent-Hunyuan/Hy3/issues/4). All intelligent tasks (research planning, report generation, code analysis, document Q&A) are performed via the **Hy3 API** (OpenAI-compatible interface), without model training, fine-tuning, or local inference.
 
-- **One-click install, plug & play** — automated installation via `setup.bat` / `setup.sh`
-- **5 MCP tools** — deep research, code review, document Q&A, data analysis, general chat
-- **4 MCP client supports** — CodeBuddy / Cursor / Claude Desktop / Cline
-- **Dual configuration** — environment variables + `.env` file, flexible adaptation
-- **Auto retry** — exponential backoff to handle network fluctuations
-- **Multi-encoding support** — auto-detect UTF-8 / GBK / GB2312
-- **Dual-layer search fallback** — DuckDuckGo HTML → Instant Answer API
+### Hy3's Role in the Project
 
-## Tool Capabilities
-
-| Tool | Function | Input | Typical Scenario |
-|------|----------|-------|------------------|
-| `hy3_research` | Deep research | Topic + search depth | Industry analysis, technology research |
-| `hy3_code_review` | Code review | Code + language + focus | Bug detection, security audit |
-| `hy3_doc_qa` | Document Q&A | File path + question | PDF/TXT/MD/code interpretation |
-| `hy3_data_analyze` | Data analysis | CSV/JSON + analysis goal | Data insight, trend discovery |
-| `hy3_chat` | General chat | Message + system prompt | Writing, translation, explanation |
-
-## One-Click Install
-
-### 1. Clone and Enter Directory
-
-```bash
-git clone https://github.com/your-org/hy3-mcp-server.git
-cd hy3-mcp-server
-```
-
-### 2. Configure API Key (choose one)
-
-**Option 1: Environment Variable**
-```bash
-# Windows (PowerShell)
-$env:HY3_API_KEY="your_api_key"
-
-# macOS/Linux
-export HY3_API_KEY="your_api_key"
-```
-
-**Option 2: .env File**
-```bash
-cp .env.example .env
-# Edit .env and fill in your API Key
-```
-
-### 3. Run Install Script
-
-```bash
-# Windows
-setup.bat
-
-# macOS / Linux
-bash setup.sh
-```
-
-## Client Configuration
-
-After installation, choose the corresponding configuration for your MCP client:
-
-### CodeBuddy
-
-Add the following in CodeBuddy's MCP settings:
-
-```json
-{
-  "mcpServers": {
-    "hy3-assistant": {
-      "type": "stdio",
-      "command": "python",
-      "args": ["src/server.py"],
-      "cwd": "/your/path/to/hy3-mcp-server",
-      "env": {
-        "HY3_API_KEY": "your_api_key",
-        "HY3_MODEL": "hunyuan-pro"
-      }
-    }
-  }
-}
-```
-
-### Cursor
-
-Create `.cursor/mcp.json` in the project root:
-
-```json
-{
-  "mcpServers": {
-    "hy3-assistant": {
-      "command": "python",
-      "args": ["src/server.py"],
-      "cwd": "/your/path/to/hy3-mcp-server",
-      "env": {
-        "HY3_API_KEY": "your_api_key",
-        "HY3_MODEL": "hunyuan-pro"
-      }
-    }
-  }
-}
-```
-
-Detailed configuration can also refer to the JSON templates in the `configs/` directory for each client.
+| Feature | Hy3's Role |
+|---------|------------|
+| Deep Research | Research plan formulation → Search keyword generation → Long-form report writing → Executive summary extraction |
+| Code Analysis | Code comprehension, Bug detection, Performance optimization suggestions, Security audit, Quality scoring |
+| Document Q&A | Multi-document reading comprehension, Evidence-driven precise Q&A |
 
 ## Project Structure
 
 ```
-hy3-mcp-server/
-├── src/
-│   ├── __init__.py          # Package info
-│   ├── server.py             # MCP Server main program (5 Tools)
-│   └── hy3_client.py         # Hy3 API client wrapper
-├── configs/                  # MCP configuration templates for each client
-│   ├── codebuddy-mcp.json
-│   ├── cursor-mcp.json
-│   ├── claude-mcp.json
-│   └── cline-mcp.json
-├── tests/
-│   └── test_hy3_client.py    # Unit tests
-├── .env.example              # Environment variable template
-├── .gitignore
-├── requirements.txt          # Python dependencies
-├── setup.bat                 # Windows one-click install
-├── setup.sh                  # Linux/macOS one-click install
+hy3-research-assistant-package/
+├── backend/
+│   ├── main.py            # FastAPI server (6 API endpoints, all SSE streaming)
+│   ├── hy3_client.py      # Hy3 API client wrapper (OpenAI-compatible)
+│   ├── tools.py            # Utility functions (web search, PDF/DOCX/code parsing)
+│   ├── cli.py              # CLI entry point (hy3-research command after pip install)
+│   └── requirements.txt   # Python dependencies
+├── hy3-mcp-server/         # MCP Server sub-project (installable independently)
+│   ├── src/                # Source code
+│   │   ├── server.py       # FastMCP server (5 Tools)
+│   │   └── hy3_client.py  # Hy3 API client
+│   ├── pyproject.toml      # pip install configuration
+│   └── requirements.txt   # Python dependencies
+├── frontend/
+│   └── index.html          # Modern web frontend (dark theme, streaming, Markdown rendering)
+├── pyproject.toml          # Main project pip install configuration
+├── .env.example            # Environment variable template
+├── start.bat               # Windows one-click launch script
+├── 安装说明.md              # Detailed installation guide
 └── README.md
 ```
 
-## Environment Variables
+## Quick Start
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `HY3_API_KEY` | ✅ Required | - | Hy3 large model API key |
-| `HY3_BASE_URL` | Optional | `https://api.hunyuan.cloud.tencent.com/v1` | API base endpoint |
-| `HY3_MODEL` | Optional | `hunyuan-pro` | Model name to use |
+### Requirements
 
-> 💡 Configuration supports both environment variables and `.env` files (environment variables take priority).
+- Python 3.9+
+- A valid Hy3 API Key
 
-## Data Sources
-
-| Type | Description |
-|------|-------------|
-| **Web Search** | DuckDuckGo dual-layer search (HTML parsing → Instant Answer API fallback) |
-| **Local Files** | Supports .txt .md .py .js .ts .json .csv .html .css .yaml .yml .toml .ini .cfg .conf .sh .bat .sql .java .go .rs .c .cpp .h and other text formats |
-| **Core Inference** | All AI analysis / generation / review capabilities are provided by Tencent Hunyuan Hy3 large model (OpenAI-compatible interface) |
-
-## Technical Details
-
-- **MCP Framework**: FastMCP >= 2.0.0 (stdio transport)
-- **AI Inference**: Tencent Hunyuan Hy3 large model (OpenAI-compatible interface: `https://api.hunyuan.cloud.tencent.com/v1`)
-- **Search Fallback Strategy**:
-  1. DuckDuckGo HTML search (full parsing of title, link, snippet)
-  2. DuckDuckGo Instant Answer API (structured data)
-- **Retry Mechanism**: Exponential backoff (1s → 2s → 4s), up to 3 retries
-- **Configuration**: Supports both environment variables and `.env` files (environment variables take priority)
-- **Encoding Compatibility**: Auto-detect UTF-8 → GBK → GB2312 → Latin-1
-- **Security**: API Key passed via environment variable or .env file; `.gitignore` excludes `.env`
-
-## Running Tests
+### Option 1: pip Install (Recommended)
 
 ```bash
-cd tests
-python -m pytest test_hy3_client.py -v
+cd hy3-research-assistant-package
+
+# pip install (auto-handles dependencies)
+pip install -e .
+
+# Configure API key
+# Windows:  set HY3_API_KEY=your-api-key
+# macOS/Linux: export HY3_API_KEY=your-api-key
+# Or copy .env.example to .env and fill in your key
+
+# One-click launch
+hy3-research
+# Service runs at http://localhost:8000
 ```
 
-## License
+### Option 2: Manual Install
 
-MIT License
+```bash
+cd backend
+pip install -r requirements.txt
+cd ..
+python backend/main.py
+```
+
+### Option 3: Windows One-Click Launch
+
+Double-click `start.bat` (auto-detects API Key, installs dependencies, starts service)
+
+### Optional Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `HY3_API_KEY` | Hy3 API key (required) | - |
+| `HY3_BASE_URL` | API endpoint URL | `https://api.hunyuan.cloud.tencent.com/v1` |
+| `HY3_MODEL` | Model name | `hunyuan-pro` |
+| `PORT` | Service port | `8000` |
+
+## Three Core Features
+
+### Deep Research
+
+Enter a research topic, and Hy3 will automatically:
+
+1. **Research Planning** — Break down the topic into sub-questions, generate search keywords
+2. **Literature Search** — Automatically search relevant web sources
+3. **Report Writing** — Generate a 1500-3000 word professional research report based on search results
+4. **Executive Summary** — Extract a concise summary of key findings
+
+### Code Analysis
+
+Paste code or upload a code file, and Hy3 will provide:
+
+- Code overview and core functionality explanation
+- Execution logic and key flow analysis
+- Potential bugs, performance issues, and security vulnerability diagnosis
+- Specific optimization suggestions and best practices
+- Code quality score (1-10)
+
+### Document Q&A
+
+Upload multiple documents (PDF, DOCX, TXT, code files, etc.) and ask Hy3 questions:
+
+- Precise answers based on document content
+- Quote original passages as evidence
+- Clearly indicate when information is missing
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Frontend page |
+| `/health` | GET | Health check |
+| `/api/research` | POST | Deep research (streaming) |
+| `/api/analyze-code` | POST | Paste code analysis (streaming) |
+| `/api/analyze-code-file` | POST | Upload code file analysis (streaming) |
+| `/api/qa-documents` | POST | Multi-document Q&A (streaming) |
+
+All intelligent endpoints use Server-Sent Events (SSE) for streaming output, supporting real-time frontend rendering.
+
+## Tech Stack
+
+- **Backend**: FastAPI + OpenAI SDK + Uvicorn
+- **Frontend**: Native HTML/CSS/JS + marked.js (Markdown rendering)
+- **Model**: Tencent Hunyuan Hy3 (via OpenAI-compatible interface)
+- **Tools**: DuckDuckGo web search, PyPDF2, python-docx
+
+## Hy3 MCP Server
+
+`hy3-mcp-server` is a standalone sub-project that wraps Hy3 capabilities as MCP protocol tools.
+
+### Quick Install
+
+```bash
+cd hy3-mcp-server
+pip install -e .
+# Or double-click setup.bat (Windows)
+```
+
+### Configure Claude Desktop
+
+Add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "hy3": {
+      "command": "hy3-mcp",
+      "env": { "HY3_API_KEY": "your-api-key" }
+    }
+  }
+}
+```
+
+### MCP Tool List
+
+| Tool Name | Function |
+|-----------|----------|
+| `hy3_research` | Deep research: search + analysis + report |
+| `hy3_code_review` | Code review: bug detection + performance + security |
+| `hy3_doc_qa` | Document Q&A: parsing + precise answers |
+| `hy3_data_analyze` | Data analysis: CSV/JSON + insights |
+| `hy3_chat` | General chat |
+
+---
+
+## CodeBuddy Collaboration Notes
+
+This project was built with the assistance of CodeBuddy AI programming assistant:
+
+- **Collaborative Design**: AI participated in overall architecture planning, feature module decomposition, and front-end/back-end interaction design
+- **Code Generation**: AI wrote the backend server, API client, utility functions, and frontend interface
+- **Documentation**: AI generated the README, configuration templates, startup scripts, and installation guides
+- **Package Creation**: AI created pyproject.toml, enabling `pip install -e .` installation
