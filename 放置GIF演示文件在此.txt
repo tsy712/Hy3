@@ -1,0 +1,29 @@
+════════════════════════════════════════════
+     效果演示 GIF 文件存放说明
+════════════════════════════════════════════
+
+请将以下 GIF 文件放到本目录中：
+
+1. demo-codebuddy-hy3-research.gif
+   → 录制在 CodeBuddy 中调用 hy3_research 工具的对话效果
+
+2. demo-hy3-research-assistant.gif
+   → 录制 Hy3 研究助手 Web 界面的操作演示
+
+3. demo-mcp-integration.gif
+   → 录制 MCP Server 接入 CodeBuddy 后的运行效果
+
+════════════════════════════════════════════
+         GIF 录制建议
+════════════════════════════════════════════
+
+推荐工具：
+  • Windows: ScreenToGif (免费) 或 OBS Studio (免费)
+  • macOS: Kap (免费) 或 CleanShot X
+  • Linux: Peek (免费)
+
+推荐参数：
+  • 分辨率: 1280x720 或 1920x1080
+  • 帧率: 15-20 FPS
+  • 时长: 15-30 秒
+  • 格式: GIF（建议 < 10MB）

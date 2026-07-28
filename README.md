@@ -19,29 +19,6 @@
   提供 <b>深度研究</b>、<b>代码分析</b>、<b>文档问答</b> 三大核心功能
 </p>
 
-<p align="center">
-  <a href="https://github.com/Tencent-Hunyuan/Hy3"><img src="https://img.shields.io/badge/⭐-Star%20本项目%20%E2%80%94%20如果对你有帮助！-yellow?style=for-the-badge" alt="Star"></a>
-  <br>
-  <sub>如果本项目对你有帮助，欢迎点击右上角 <b>⭐ Star</b> 支持！</sub>
-</p>
-
----
-
-## 🚀 一键使用
-
-```bash
-# 1. 配置 API Key（复制 .env.example 后填入密钥）
-cp .env.example .env
-
-# 2. 启动服务
-docker-compose up -d
-```
-
-浏览器打开 **http://localhost:8000** 即可使用。
-
-> 仅需 [安装 Docker Desktop](https://docs.docker.com/get-docker/)，不需要 GPU / CUDA / NVIDIA Container Toolkit。  
-> 无 Docker？一键安装：**`./install.sh`**（macOS / Linux）或 **双击 `install.bat`**（Windows）。详见 → [快速开始指南](docs/quick-start.md)
-
 ---
 
 ## 📺 效果演示
@@ -49,7 +26,7 @@ docker-compose up -d
 <p align="center">
   <em>Hy3 研究助手 Web 界面与深度研究报告生成效果：</em>
   <br><br>
-  <img src="./docs/demo-hy3-research-assistant.gif" alt="Hy3 研究助手效果演示" width="85%">
+  <img src="../效果演示/demo-hy3-research-assistant.gif" alt="Hy3 研究助手效果演示" width="85%">
   <br>
   <sub>▲ 示例：输入研究主题 → Hy3 自动搜索分析 → 生成结构化研究报告</sub>
 </p>
@@ -57,12 +34,12 @@ docker-compose up -d
 <p align="center">
   <em>接入 MCP Server 后在 CodeBuddy 中的调用效果：</em>
   <br><br>
-  <img src="./docs/demo-mcp-integration.gif" alt="MCP Server 接入效果演示" width="85%">
+  <img src="../效果演示/demo-mcp-integration.gif" alt="MCP Server 接入效果演示" width="85%">
   <br>
   <sub>▲ 示例：在 CodeBuddy 中透明调用 Hy3 工具完成代码评审</sub>
 </p>
 
-> 💡 **推荐**: 更多演示截图请参见 [`docs/screenshots/`](./docs/screenshots/) 目录。
+> 💡 **把你的演示 GIF 放到 `效果演示/` 文件夹中即会自动替换。**
 
 > ⚡ **本项目不需要 GPU、不需要 CUDA、不需要安装 PyTorch / DeepSpeed / Flash-Attention。**
 > 所有 AI 能力通过云端 API 调用，本地只需 Python 3.9+ 即可运行。
@@ -112,7 +89,7 @@ docker-compose up -d                     # 浏览器打开 http://localhost:8000
 |------|------|
 | [快速开始指南](docs/quick-start.md) | 安装、配置 API Key、3 种启动方式的详细步骤 |
 | [环境要求与项目结构](docs/environment.md) | 硬件/软件要求、依赖包、目录结构 |
-| [本地运行 Hy3 模型](docs/local-hy3-model.md) | ⚠️ DeepSpeed / Flash-Attention 版本兼容、编译避坑、显存要求 |
+| [本地运行 Hy3 模型](docs/local-hy3-model.md) | DeepSpeed / Flash-Attention 版本兼容、编译避坑、显存要求 |
 | [功能介绍](docs/features.md) | 深度研究、代码分析、文档问答的详细说明 |
 | [API 参考](docs/api-reference.md) | 6 个 API 端点、环境变量、技术栈 |
 | [MCP Server](docs/mcp-server.md) | 为 Claude Desktop / Cursor 提供 Hy3 能力 |
@@ -156,13 +133,11 @@ docker-compose up -d                     # 浏览器打开 http://localhost:8000
 ```
 hy3-research-assistant/
 ├── Dockerfile, docker-compose.yml   # Docker 部署
-├── install.sh, install.bat          # 一键安装脚本（Linux/macOS + Windows）
-├── start.bat                        # Windows 一键启动
 ├── backend/                         # FastAPI 服务端（main.py / hy3_client.py / tools.py / cli.py）
 ├── frontend/index.html              # Web 前端
 ├── hy3-mcp-server/                  # 独立 MCP Server 子项目
 ├── pyproject.toml, .env.example     # pip 安装 + 环境配置
-└── docs/                            # 📚 详细文档
+└── start.bat                        # Windows 一键启动
 ```
 
 ---
@@ -180,28 +155,6 @@ Hy3 研究助手配套的 MCP Server 可接入以下 AI 客户端：
 | **Cline (VS Code)** | ⭐⭐ | 通过插件 MCP 设置 |
 
 > 📘 各客户端配置详情 → [MCP Server 文档](docs/mcp-server.md)
-
----
-
-## 🔌 MCP 连接即生效
-
-配置好 MCP Server 后，Hy3 工具会自动出现在你的 AI 客户端中。直接对话即可触发：
-
-```
-用户: "帮我调研 WebAssembly 2024 最新进展"
-
-AI 自动调用 hy3_research → 搜索分析 → 生成千字报告 ✅
-
-用户: "@main.py 审查代码质量"
-
-AI 自动调用 hy3_code_review → 安全漏洞 + 性能建议 + 评分 ✅
-
-用户: "@contract.pdf 分析合同风险条款"
-
-AI 自动调用 hy3_doc_qa → 逐条分析 + 原文引用 ✅
-```
-
-> 💡 **无需编写代码、无需手动调用 API** — 请直接向 AI 提问，Hy3 工具在后台自动执行。
 
 ---
 
