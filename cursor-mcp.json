@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "hy3": {
+      "command": "python",
+      "args": ["src/server.py"],
+      "cwd": "${workspaceFolder}/hy3-mcp-server",
+      "env": {
+        "HY3_API_KEY": "your-api-key-here"
+      }
+    }
+  }
+}

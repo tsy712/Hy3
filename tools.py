@@ -1,160 +1,165 @@
 """
-Utility functions: web search, file parsing, etc.
-Provides support for Deep Research and Document Q&A.
+工具函数集合 — 网页搜索、文件解析、文本处理等通用能力。
 """
 
-import os
-import re
-import logging
+import io
 from typing import Optional
-from io import BytesIO
 
 import httpx
 from bs4 import BeautifulSoup
 
-logger = logging.getLogger(__name__)
 
+class ToolManager:
+    """工具管理器：提供搜索、文件解析等工具能力"""
 
-# ── .env Loading ─────────────────────────────────────────
+    @staticmethod
+    async def duckduckgo_search(
+        query: str,
+        max_results: int = 10,
+    ) -> list[dict]:
+        """
+        DuckDuckGo 搜索（双层降级策略）
 
-def load_dotenv(path: Optional[str] = None):
-    """Simple .env file loader, no python-dotenv dependency required"""
-    if path is None:
-        # First look for .env in backend directory, then project root
-        candidates = [
-            os.path.join(os.path.dirname(__file__), ".env"),
-            os.path.join(os.path.dirname(__file__), "..", ".env"),
-        ]
-        for p in candidates:
-            if os.path.exists(p):
-                path = p
-                break
-
-    if path is None or not os.path.exists(path):
-        return
-
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            if "=" in line:
-                key, _, value = line.partition("=")
-                key = key.strip()
-                value = value.strip().strip('"').strip("'")
-                if key and key not in os.environ:
-                    os.environ[key] = value
-    logger.info(".env file loaded: %s", path)
-
-
-# ── Web Search ────────────────────────────────────────────
-
-async def web_search(query: str, num_results: int = 5) -> str:
-    """
-    Perform web search and return formatted results.
-    Uses DuckDuckGo's HTML interface (no API key required), parsed with BeautifulSoup.
-    """
-    try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.get(
-                "https://html.duckduckgo.com/html/",
-                params={"q": query},
-                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
+        第一层：DuckDuckGo Instant Answer API（JSON）
+        第二层：DuckDuckGo HTML 搜索结果页解析
+        """
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/120.0.0.0 Safari/537.36"
             )
+        }
 
-            if resp.status_code != 200:
-                return f"Search failed, status code: {resp.status_code}"
+        results = []
 
-            soup = BeautifulSoup(resp.text, "html.parser")
-            results = []
+        async with httpx.AsyncClient(timeout=15.0, headers=headers) as client:
+            # 第一层：Instant Answer API
+            try:
+                api_url = "https://api.duckduckgo.com/"
+                params = {
+                    "q": query,
+                    "format": "json",
+                    "no_html": 1,
+                    "skip_disambig": 1,
+                }
+                resp = await client.get(api_url, params=params)
+                resp.raise_for_status()
+                data = resp.json()
 
-            # Parse each search result block
-            result_blocks = soup.find_all("div", class_="result")
-            if not result_blocks:
-                result_blocks = soup.select(".result, .results_links, .web-result")
+                # 提取 Abstract
+                if data.get("AbstractText"):
+                    results.append({
+                        "title": data.get("Heading", query),
+                        "snippet": data["AbstractText"],
+                        "url": data.get("AbstractURL", ""),
+                        "source": "DuckDuckGo Abstract",
+                    })
 
-            for i, block in enumerate(result_blocks[:num_results]):
-                # Extract title and link
-                link_el = block.find("a", class_="result__a")
-                if not link_el:
-                    link_el = block.find("a", class_="result__url")
-                if not link_el:
-                    link_el = block.find("a", href=True)
+                # 提取 RelatedTopics
+                for topic in data.get("RelatedTopics", []):
+                    if topic.get("Text") and not topic.get("Topics"):
+                        results.append({
+                            "title": topic.get("FirstURL", ""),
+                            "snippet": topic.get("Text", ""),
+                            "url": topic.get("FirstURL", ""),
+                            "source": "DuckDuckGo Related",
+                        })
+            except Exception:
+                pass
 
-                title = link_el.get_text(strip=True) if link_el else "Untitled"
-                link = link_el.get("href", "") if link_el else ""
+            # 第二层：HTML 搜索（如果结果不够）
+            if len(results) < max_results:
+                try:
+                    html_url = f"https://html.duckduckgo.com/html/?q={query}"
+                    resp = await client.get(html_url)
+                    resp.raise_for_status()
+                    soup = BeautifulSoup(resp.text, "lxml")
 
-                # Extract snippet
-                snippet_el = block.find("a", class_="result__snippet")
-                if not snippet_el:
-                    snippet_el = block.find(class_="result__snippet")
-                snippet = snippet_el.get_text(strip=True) if snippet_el else ""
+                    for item in soup.select(".result")[: max_results - len(results)]:
+                        title_el = item.select_one(".result__title a")
+                        snippet_el = item.select_one(".result__snippet")
+                        url_el = item.select_one(".result__url")
 
-                if title and title != "Untitled":
-                    results.append(f"{i+1}. 【{title}】\n   Link: {link}\n   Snippet: {snippet}")
+                        if title_el and snippet_el:
+                            results.append({
+                                "title": title_el.get_text(strip=True),
+                                "snippet": snippet_el.get_text(strip=True),
+                                "url": url_el.get_text(strip=True) if url_el else "",
+                                "source": "DuckDuckGo HTML",
+                            })
+                except Exception:
+                    pass
 
-            if not results:
-                return f"No results found for '{query}'."
+        return results[:max_results]
 
-            return "\n\n".join(results)
+    @staticmethod
+    def parse_pdf(file_bytes: bytes) -> str:
+        """解析 PDF 文件，返回文本内容"""
+        try:
+            from PyPDF2 import PdfReader
 
-    except Exception as e:
-        logger.error("Search error: %s", e)
-        return f"Error while searching '{query}': {str(e)}"
+            reader = PdfReader(io.BytesIO(file_bytes))
+            text_parts = []
+            for page in reader.pages:
+                text = page.extract_text()
+                if text:
+                    text_parts.append(text)
+            return "\n".join(text_parts)
+        except Exception as e:
+            return f"[PDF 解析失败] {str(e)}"
 
+    @staticmethod
+    def parse_docx(file_bytes: bytes) -> str:
+        """解析 DOCX 文件，返回文本内容"""
+        try:
+            from docx import Document
 
-# ── File Reading ────────────────────────────────────────────
+            doc = Document(io.BytesIO(file_bytes))
+            text_parts = []
+            for para in doc.paragraphs:
+                if para.text.strip():
+                    text_parts.append(para.text)
+            return "\n".join(text_parts)
+        except Exception as e:
+            return f"[DOCX 解析失败] {str(e)}"
 
-async def read_file_content(file_bytes: bytes, filename: str) -> Optional[str]:
-    """
-    Parse content based on file extension.
-    Supports: .txt, .md, .py, .js, .ts, .html, .css, .json, .xml, .yaml, .pdf, .docx
-    """
-    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
-
-    # Plain text
-    if ext in ("txt", "md", "py", "js", "ts", "jsx", "tsx", "html", "css", "json", "xml", "yaml", "yml", "cfg", "ini"):
+    @staticmethod
+    def parse_text(file_bytes: bytes) -> str:
+        """解析纯文本文件"""
         try:
             return file_bytes.decode("utf-8")
         except UnicodeDecodeError:
             try:
                 return file_bytes.decode("gbk")
-            except UnicodeDecodeError:
-                return "[Unable to decode file content]"
+            except Exception as e:
+                return f"[文本解析失败] {str(e)}"
 
-    # PDF
-    if ext == "pdf":
-        try:
-            from PyPDF2 import PdfReader
-            reader = PdfReader(BytesIO(file_bytes))
-            pages = []
-            for page in reader.pages[:20]:  # Read up to 20 pages
-                text = page.extract_text()
-                if text:
-                    pages.append(text)
-            return "\n\n".join(pages) if pages else "[PDF contains no text]"
-        except ImportError:
-            return "[PyPDF2 not installed, cannot parse PDF]"
-        except Exception as e:
-            return f"[PDF parsing error: {e}]"
+    @classmethod
+    def parse_file(cls, filename: str, file_bytes: bytes) -> str:
+        """根据文件扩展名自动选择合适的解析器"""
+        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
 
-    # DOCX
-    if ext == "docx":
-        try:
-            from docx import Document
-            doc = Document(BytesIO(file_bytes))
-            paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
-            return "\n".join(paragraphs) if paragraphs else "[Document is empty]"
-        except ImportError:
-            return "[python-docx not installed, cannot parse DOCX]"
-        except Exception as e:
-            return f"[DOCX parsing error: {e}]"
+        parsers = {
+            "pdf": cls.parse_pdf,
+            "docx": cls.parse_docx,
+            "doc": cls.parse_docx,
+            "txt": cls.parse_text,
+            "md": cls.parse_text,
+            "py": cls.parse_text,
+            "js": cls.parse_text,
+            "ts": cls.parse_text,
+            "java": cls.parse_text,
+            "cpp": cls.parse_text,
+            "c": cls.parse_text,
+            "html": cls.parse_text,
+            "css": cls.parse_text,
+            "json": cls.parse_text,
+            "yaml": cls.parse_text,
+            "yml": cls.parse_text,
+            "xml": cls.parse_text,
+            "csv": cls.parse_text,
+        }
 
-    return f"[Unsupported file type: .{ext}]"
-
-
-def truncate_text(text: str, max_chars: int = 8000) -> str:
-    """Truncate text, adding ellipsis marker when exceeding max characters"""
-    if len(text) <= max_chars:
-        return text
-    return text[:max_chars] + f"\n\n... [Content truncated, original length: {len(text)} characters]"
+        parser = parsers.get(ext, cls.parse_text)
+        return parser(file_bytes)
