@@ -1,130 +1,441 @@
-<a href="README_EN.md">🇺🇸 English</a> · <strong>🇨🇳 中文</strong>
+# Hy3 Research Assistant
 
-# Hy3 研究助手
+An intelligent research assistant powered by Tencent Hunyuan Hy3 large language model, offering three core capabilities: **Deep Research**, **Code Analysis**, and **Document Q&A**.
 
-基于腾讯混元 Hy3 大模型的智能研究助手，提供**深度研究**、**代码分析**、**文档问答**三大核心功能。
+## Project Overview
 
-## 项目简介
+This project is a complete implementation of the Tencent RhinoBird Open Source Practical Program [Issue #4](https://github.com/Tencent-Hunyuan/Hy3/issues/4). All intelligent tasks (research planning, report generation, code analysis, document Q&A) are accomplished by calling the **Hy3 API** (OpenAI-compatible interface), with no model training, fine-tuning, or local inference involved.
 
-本项目是腾讯犀牛鸟实战计划 [Issue #4](https://github.com/Tencent-Hunyuan/Hy3/issues/4) 的完整实现。所有智能任务（研究规划、报告生成、代码分析、文档问答）均通过调用 **Hy3 API**（OpenAI 兼容接口）完成，不涉及模型训练、微调或本地推理。
+### Hy3's Role in the Project
 
-### Hy3 在项目中的角色
+| Feature Module | Hy3's Role |
+|----------------|------------|
+| Deep Research | Research plan formulation → Search keyword generation → Long-form report writing → Executive summary extraction |
+| Code Analysis | Code understanding, bug detection, performance optimization suggestions, security audits, quality scoring |
+| Document Q&A | Multi-document reading comprehension, evidence-driven precise answering |
 
-| 功能模块 | Hy3 的角色 |
-|---------|-----------|
-| 深度研究 | 研究计划制定 → 搜索关键词生成 → 长文报告撰写 → 执行摘要提炼 |
-| 代码分析 | 代码理解、Bug 检测、性能优化建议、安全审计、质量评分 |
-| 文档问答 | 多文档阅读理解、证据驱动的精准问答 |
-
-## 项目结构
+## Project Structure
 
 ```
 hy3-research-assistant/
 ├── backend/
-│   ├── main.py            # FastAPI 服务器（6 个 API 端点，全部支持 SSE 流式输出）
-│   ├── hy3_client.py      # Hy3 API 客户端封装（OpenAI 兼容接口）
-│   ├── tools.py            # 工具函数（网页搜索、PDF/DOCX/代码文件解析）
-│   └── requirements.txt   # Python 依赖
+│   ├── main.py            # FastAPI server (6 API endpoints, all supporting SSE streaming)
+│   ├── hy3_client.py      # Hy3 API client wrapper (OpenAI-compatible interface)
+│   ├── tools.py            # Utility functions (web search, PDF/DOCX/code file parsing)
+│   ├── cli.py              # CLI entry point (use hy3-research command after pip install)
+│   └── requirements.txt   # Python dependencies
+├── hy3-mcp-server/         # MCP Server sub-project (installable independently)
+│   ├── src/                # Source code
+│   │   ├── server.py       # FastMCP server (5 Tools)
+│   │   └── hy3_client.py  # Hy3 API client
+│   ├── pyproject.toml      # pip install configuration
+│   └── requirements.txt   # Python dependencies
 ├── frontend/
-│   └── index.html          # 现代化 Web 前端（暗色主题、流式渲染、Markdown 展示）
-├── .env.example            # 环境变量配置模板
+│   └── index.html          # Modern web frontend (dark theme, streaming rendering, Markdown display)
+├── pyproject.toml          # Main project pip install configuration
+├── .env.example            # Environment variable configuration template
 ├── .gitignore
-├── start.bat               # Windows 一键启动脚本
+├── start.bat               # Windows one-click startup script
 └── README.md
 ```
 
-## 快速开始
+---
 
-### 环境要求
+> **【Newcomers Must Read】Environment Setup Pitfall Guide**
+> 
+> Since the official Hy3 repository depends on `deepspeed` + `flash-attn` with strict CUDA version requirements, **please first determine which scenario applies to you**:
+> 
+> **Option A (Recommended)**: If you're using a school server or personal laptop **without an NVIDIA GPU (≥24GB)** → skip the model fine-tuning module and just run `python server.py` to experience basic functionality. This project calls cloud APIs via HTTP and does not require a GPU / CUDA / local model.
+> 
+> **Option B (Hardcore)**: If you have an NVIDIA GPU and want to run the Hy3 model locally → ensure **PyTorch version matches your CUDA driver**. Docker deployment is strongly recommended (version compatibility table and Docker guide below).
+> 
+> See the detailed risk explanation in the ⚠️ section below →
 
-- Python 3.9+
-- 有效的 Hy3 API Key
+---
 
-### 安装与启动
+## Environment Requirements
 
-```bash
-# 1. 克隆项目
-cd hy3-research-assistant
+### Hardware Requirements
 
-# 2. 配置 API 密钥
-# Windows
-set HY3_API_KEY=你的API密钥
-# 或复制 .env.example 为 .env 并填入密钥
+| Item | Minimum | Recommended |
+|------|---------|-------------|
+| CPU | Any dual-core processor | Quad-core or higher |
+| Memory | 512 MB | 1 GB+ |
+| Disk | 200 MB | 500 MB+ |
+| GPU | **Not required** | **Not required** |
+| Network | Broadband | Stable broadband |
 
-# 3. 安装依赖
-cd backend
-pip install -r requirements.txt
+> **Important: This project does NOT require a GPU or CUDA.**  
+> All AI inference tasks are completed via HTTP calls to the Tencent Hunyuan Hy3 cloud API, with no local model loading, inference, or training involved.  
+> If your goal is to **run/fine-tune the Hy3 model itself locally**, please refer to the [official Hy3 repository](https://github.com/Tencent-Hunyuan/Hy3) for hardware requirements (NVIDIA GPU + CUDA 11.8+ required).
 
-# 4. 启动服务
-python main.py
-# 服务运行在 http://localhost:8000
+### Software Requirements
+
+| Dependency | Version Requirement | Notes |
+|------------|---------------------|-------|
+| Python | **3.9+** (main project) / **3.10+** (MCP Server) | 3.11 recommended |
+| pip | 23.0+ | Installed with Python |
+| OS | Windows 10+ / macOS 12+ / Linux (any distribution) | All supported |
+
+### Dependency Overview
+
+This project does **NOT** depend on PyTorch, Transformers, CUDA, or other deep learning frameworks. Only 11 lightweight packages are required:
+
+```
+fastapi>=0.115.0        # Web framework
+uvicorn>=0.34.0         # ASGI server
+openai>=1.50.0          # Hy3 API calls (OpenAI-compatible interface)
+python-multipart        # File upload support
+aiofiles                # Async file I/O
+PyPDF2>=3.0.0           # PDF parsing
+python-docx>=1.1.0      # Word document parsing
+httpx>=0.28.0           # HTTP client (web search)
+beautifulsoup4>=4.12.0  # HTML parsing
+lxml>=5.3.0             # High-performance XML/HTML parser
 ```
 
-打开浏览器访问 `http://localhost:8000` 即可使用。
+> Total installation size is approximately **80 MB** — no multi-GB model weight files to download.
 
-### 可选环境变量
+---
 
-| 变量名 | 说明 | 默认值 |
-|--------|------|--------|
-| `HY3_API_KEY` | Hy3 API 密钥（必填） | - |
-| `HY3_BASE_URL` | API 端点地址 | `https://api.hunyuan.cloud.tencent.com/v1` |
-| `HY3_MODEL` | 模型名称 | `hunyuan-pro` |
-| `PORT` | 服务端口 | `8000` |
+## ⚠️ Risk Warning: The Huge Difference Between Two Operating Modes
 
-## 三大功能
+Many developers encountering Hy3 for the first time confuse the following two scenarios. **Please confirm which one applies to you:**
 
-### 🔬 深度研究 (Deep Research)
+| Dimension | 🟢 Mode A: This Application (Recommended) | 🔴 Mode B: Running Hy3 Model Locally |
+|-----------|------------------------------------------|--------------------------------------|
+| What it does | Calls Tencent cloud API via HTTP | Loads and runs inference on model locally on GPU |
+| GPU needed? | **No** | **Required** (NVIDIA GPU) |
+| CUDA needed? | **No** | **Required** (CUDA 11.8 or 12.1) |
+| Install size | ~80 MB | ~20 GB+ (including model weights) |
+| Install time | < 2 minutes | 30 minutes ~ 2 hours |
+| Works on first try? | ✅ Almost never fails | ❌ High chance of issues |
 
-输入研究主题，Hy3 将自动完成：
+> **If you just want to use Hy3's intelligence for research, coding, and Q&A → Mode A, this document covers everything.**  
+> **If you want to deploy the Hy3 model itself on your own GPU server → Mode B, please continue reading the risk details below.**
 
-1. **研究规划** — 将主题拆解为子问题，生成搜索关键词
-2. **资料搜索** — 自动搜索相关网页资料
-3. **报告撰写** — 基于搜索结果生成 1500-3000 字专业研究报告
-4. **执行摘要** — 提炼核心发现的简明摘要
+### 🔴 Mode B: Known Pitfalls of Running Hy3 Locally
 
-### 💻 代码分析 (Code Analysis)
+The official Hy3 model repository depends on `deepspeed` + `flash-attn`, two notoriously difficult-to-install deep learning components. **Incorrect version combinations can lead to compilation failures or runtime crashes.**
 
-粘贴代码或上传代码文件，Hy3 将提供：
+#### 1. DeepSpeed + Flash-Attention Version Compatibility Table
 
-- 代码概览与核心功能解读
-- 执行逻辑与关键流程分析
-- 潜在 Bug、性能隐患、安全问题诊断
-- 具体优化建议与最佳实践
-- 1-10 分代码质量评分
+| Torch Version | CUDA Version | DeepSpeed | Flash-Attn | Notes |
+|---------------|-------------|-----------|------------|-------|
+| 2.1.x | 11.8 | 0.12.x | 2.5.x | Stable combination, try this first |
+| 2.2.x | 12.1 | 0.13.x | 2.5.x | Newer combination |
+| 2.3.x | 12.1 | 0.14.x | 2.6.x | Latest, may have compatibility issues |
+| 2.4.x+ | 12.4+ | 0.15.x+ | 2.7.x+ | Bleeding edge, stability not fully verified |
 
-### 📚 文档问答 (Document Q&A)
+> **Key lesson**: Don't run `pip install deepspeed` directly. First verify your `torch.__version__` and `nvcc --version`, then select versions according to the table above.
+> ```bash
+> # Check versions first
+> python -c "import torch; print(torch.__version__)"
+> nvcc --version  # or nvidia-smi to check CUDA Driver version
+> 
+> # Then install precisely (example: CUDA 11.8 + Torch 2.1.x)
+> pip install torch==2.1.2 torchvision==0.16.2 --index-url https://download.pytorch.org/whl/cu118
+> pip install deepspeed==0.12.6
+> pip install flash-attn==2.5.8 --no-build-isolation
+> ```
 
-上传多个文档（支持 PDF、DOCX、TXT、代码文件等），向 Hy3 提问：
+#### 2. Common Causes of flash-attn Compilation Failures
 
-- 基于文档内容精准回答
-- 引用原始段落作为证据
-- 明确标注信息缺失情况
+- **Ninja not installed**: `pip install ninja`
+- **GCC/G++ version too low**: Requires GCC 9+ (Linux) or Visual Studio Build Tools 2022+ (Windows)
+- **CUDA Toolkit not installed or wrong path**: Ensure `nvcc` is executable and in PATH
+- **Insufficient RAM**: `flash-attn` compilation peak memory can reach **32 GB+**; insufficient memory causes termination by OOM Killer
+- **Windows compatibility**: `flash-attn` has limited Windows support; strongly recommended to compile under WSL2 or native Linux
 
-## API 端点
+#### 3. Minimum GPU Memory Requirements
 
-| 端点 | 方法 | 说明 |
-|------|------|------|
-| `/` | GET | 前端页面 |
-| `/health` | GET | 服务健康检查 |
-| `/api/research` | POST | 深度研究（流式） |
-| `/api/analyze-code` | POST | 粘贴代码分析（流式） |
-| `/api/analyze-code-file` | POST | 上传代码文件分析（流式） |
-| `/api/qa-documents` | POST | 多文档问答（流式） |
+| Model Size | FP16 | FP32 | INT8 Quantized |
+|------------|------|------|----------------|
+| 7B | ~14 GB | ~28 GB | ~8 GB |
+| 13B | ~26 GB | ~52 GB | ~14 GB |
+| 34B | ~68 GB | ~136 GB | ~35 GB |
 
-所有智能端点均使用 Server-Sent Events (SSE) 实现流式输出，支持前端实时渲染。
+> **⚠️ If you're reviewing this repository on a MacBook / thin-and-light laptop / desktop with integrated graphics**: Mode B is impossible to run.  
+> **⚠️ If you only have a single 8GB/12GB consumer GPU (e.g., RTX 3060/4060)**: You can only run the 7B quantized version and will need CPU offload.  
+> **Recommended hardware for review**: NVIDIA GPU ≥ 24 GB VRAM (e.g., RTX 3090/4090, A5000, A100).
 
-## 技术栈
+#### 4. Recommended: One-Click Docker Deployment (Skip Compilation Hell)
 
-- **后端**: FastAPI + OpenAI SDK + Uvicorn
-- **前端**: 原生 HTML/CSS/JS + marked.js（Markdown 渲染）
-- **模型**: 腾讯混元 Hy3（通过 OpenAI 兼容接口调用）
-- **工具**: DuckDuckGo 网页搜索、PyPDF2、python-docx
+If you must run the Hy3 model locally, **we strongly recommend using the official Docker image** to avoid manually compiling `deepspeed` + `flash-attn`:
 
-## CodeBuddy 协作说明
+```bash
+# Pull the official Hy3 image (if available)
+docker pull tencent-hunyuan/hy3:latest
 
-本项目借助 CodeBuddy AI 编程助手完成：
+# Launch (mount model directory)
+docker run --gpus all \
+  -v /path/to/models:/models \
+  -p 7860:7860 \
+  tencent-hunyuan/hy3:latest
+```
 
-- **协同设计**：AI 参与整体架构规划、功能模块拆解、前后端交互设计
-- **代码生成**：AI 编写了 `backend/main.py`（服务器和所有提示词工程）、`backend/hy3_client.py`（API 客户端封装）、`backend/tools.py`（搜索和文件解析）、`frontend/index.html`（完整前端界面）
-- **文档撰写**：AI 生成了 README、配置模板、启动脚本
-- **代码审查与打磨**：AI 辅助进行了语法检查、中英文翻译、结构优化
+> If an official Docker image has not been released yet, you can submit an Issue request in the official Hy3 repository, or build your own using the `Dockerfile` template.
+
+---
+
+## Quick Start
+
+### 0. Get Hy3 API Key
+
+A valid Hy3 API key is required. Refer to the [official Hy3 documentation](https://github.com/Tencent-Hunyuan/Hy3) for how to obtain one.
+
+### 1. Clone the Project
+
+```bash
+git clone https://github.com/Tencent-Hunyuan/Hy3.git
+cd hy3-research-assistant
+```
+
+### 2. Configure API Key
+
+**Method A: Environment Variable (Recommended)**
+
+| OS | Command |
+|----|---------|
+| Windows (CMD) | `set HY3_API_KEY=your_api_key` |
+| Windows (PowerShell) | `$env:HY3_API_KEY="your_api_key"` |
+| macOS / Linux | `export HY3_API_KEY=your_api_key` |
+
+**Method B: .env File (Persistent)**
+
+```bash
+# Copy the template
+copy .env.example .env        # Windows CMD
+cp .env.example .env          # macOS / Linux
+
+# Open .env with any text editor and fill in your key:
+# HY3_API_KEY=your_api_key
+```
+
+### 3. Install and Start
+
+**Method 1: pip Install (Recommended, supports CLI launch)**
+
+```bash
+# === Windows (PowerShell) ===
+python -m venv venv
+.\venv\Scripts\activate
+pip install -e .
+hy3-research
+
+# === macOS / Linux ===
+python3 -m venv venv
+source venv/bin/activate
+pip install -e .
+hy3-research
+
+# Service runs at http://localhost:8000
+```
+
+**Method 2: Manual Install (no CLI entry point)**
+
+```bash
+# === Windows (PowerShell) ===
+python -m venv venv
+.\venv\Scripts\activate
+cd backend
+pip install -r requirements.txt
+python main.py
+
+# === macOS / Linux ===
+python3 -m venv venv
+source venv/bin/activate
+cd backend
+pip install -r requirements.txt
+python main.py
+
+# Service runs at http://localhost:8000
+```
+
+**Method 3: One-Click Script (Windows)**
+
+```bash
+# Double-click start.bat or run in terminal:
+.\start.bat
+```
+
+After installation, open your browser and visit `http://localhost:8000`.
+
+### 4. Verify Installation
+
+```bash
+# Health check
+curl http://localhost:8000/health
+# Expected output: {"status":"healthy","hy3_connected":true}
+
+# Or open http://localhost:8000/health directly in browser
+```
+
+### Optional Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `HY3_API_KEY` | Hy3 API key (**required**) | - |
+| `HY3_BASE_URL` | API endpoint URL | `https://api.hunyuan.cloud.tencent.com/v1` |
+| `HY3_MODEL` | Model name | `hunyuan-pro` |
+| `PORT` | Service port | `8000` |
+
+---
+
+## Frequently Asked Questions (FAQ)
+
+### Q: Is a GPU required? Do I need CUDA installed?
+
+**No.** All AI capabilities in this project are implemented through cloud API calls; only a lightweight web server runs locally. An ordinary laptop is sufficient.
+
+### Q: How is this different from the official Hy3 repository's requirements.txt?
+
+The official Hy3 repository includes model training/fine-tuning dependencies (`torch`, `transformers`, `deepspeed`, `flash-attn`, etc.), requiring an NVIDIA GPU + CUDA. This project is an upper-layer application of Hy3, depending only on a web framework and HTTP client. **The two do not conflict with each other.**
+
+### Q: I want to run the Hy3 model locally — what are the pitfalls?
+
+Please read the **⚠️ Risk Warning** section above in full. Key points:
+- Installing `deepspeed` + `flash-attn` is extremely prone to failure; versions must be precisely matched in the order: Torch → CUDA → Deepspeed → Flash-Attn
+- Requires NVIDIA GPU ≥ 24 GB VRAM + 32 GB system memory (for compiling flash-attn)
+- Docker deployment is strongly recommended over manual compilation
+- If you're using a regular laptop (integrated graphics or < 8GB VRAM), give up on local execution and just use this application's cloud API mode
+
+### Q: What if pip install fails?
+
+```bash
+# 1. Upgrade pip
+python -m pip install --upgrade pip
+
+# 2. If you encounter lxml compilation errors on Windows, install the precompiled version:
+pip install lxml --only-binary=lxml
+
+# 3. Check Python version
+python --version  # Must be >= 3.9
+```
+
+### Q: The page won't open after starting the service?
+
+1. Confirm the terminal shows `Uvicorn running on http://0.0.0.0:8000`
+2. Check if your firewall is blocking port 8000
+3. Try `http://127.0.0.1:8000` (instead of localhost)
+
+### Q: Sees "HY3_API_KEY not set"?
+
+```bash
+# Temporary setting (only valid for current terminal session)
+# Windows CMD:     set HY3_API_KEY=your_key
+# Windows PowerShell: $env:HY3_API_KEY="your_key"
+# macOS/Linux:     export HY3_API_KEY=your_key
+
+# Or create a .env file for permanent effect
+echo HY3_API_KEY=your_key > .env    # Windows
+echo "HY3_API_KEY=your_key" > .env  # macOS/Linux
+```
+
+### Q: How do I provide Hy3 capabilities to other LLM clients?
+
+Use the project's built-in MCP Server:
+
+```bash
+cd hy3-mcp-server
+pip install -e .
+# Then configure the hy3-mcp command in Claude Desktop / Cursor
+```
+
+## Three Core Features
+
+### 🔬 Deep Research
+
+Enter a research topic and Hy3 will automatically:
+
+1. **Research Planning** — Decompose the topic into sub-questions and generate search keywords
+2. **Information Search** — Automatically search for relevant web content
+3. **Report Writing** — Generate a 1500–3000 word professional research report based on search results
+4. **Executive Summary** — Extract a concise summary of core findings
+
+### 💻 Code Analysis
+
+Paste code or upload code files and Hy3 will provide:
+
+- Code overview and core functionality interpretation
+- Execution logic and key flow analysis
+- Potential bugs, performance issues, and security vulnerability diagnosis
+- Specific optimization suggestions and best practices
+- 1–10 code quality score
+
+### 📚 Document Q&A
+
+Upload multiple documents (PDF, DOCX, TXT, code files, etc.) and ask Hy3 questions:
+
+- Precise answers based on document content
+- Citations of original passages as evidence
+- Clear indication when information is missing
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Frontend page |
+| `/health` | GET | Service health check |
+| `/api/research` | POST | Deep research (streaming) |
+| `/api/analyze-code` | POST | Paste code analysis (streaming) |
+| `/api/analyze-code-file` | POST | Upload code file analysis (streaming) |
+| `/api/qa-documents` | POST | Multi-document Q&A (streaming) |
+
+All intelligent endpoints use Server-Sent Events (SSE) for streaming output, supporting real-time rendering on the frontend.
+
+## Tech Stack
+
+- **Backend**: FastAPI + OpenAI SDK + Uvicorn
+- **Frontend**: Vanilla HTML/CSS/JS + marked.js (Markdown rendering)
+- **Model**: Tencent Hunyuan Hy3 (via OpenAI-compatible interface)
+- **Tools**: DuckDuckGo web search, PyPDF2, python-docx
+
+## CodeBuddy Collaboration Notes
+
+This project was completed with the assistance of CodeBuddy AI programming assistant:
+
+- **Co-design**: AI participated in overall architecture planning, feature module decomposition, and frontend-backend interaction design
+- **Code generation**: AI wrote `backend/main.py` (server and all prompt engineering), `backend/hy3_client.py` (API client wrapper), `backend/tools.py` (search and file parsing), `frontend/index.html` (complete frontend interface)
+- **Documentation**: AI generated the README, configuration templates, and startup scripts
+- **Code review & polish**: AI assisted with syntax checking, Chinese-English translation, and structural optimization
+
+---
+
+## Hy3 MCP Server
+
+`hy3-mcp-server` is a standalone Python package that wraps Hy3's large model capabilities as MCP (Model Context Protocol) tools, enabling clients like Claude Desktop and Cursor to directly call them.
+
+### Installation
+
+```bash
+cd hy3-mcp-server
+pip install -e .
+```
+
+### Configure Claude Desktop
+
+Add the following to Claude Desktop's `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "hy3": {
+      "command": "hy3-mcp",
+      "env": {
+        "HY3_API_KEY": "your_api_key"
+      }
+    }
+  }
+}
+```
+
+### Available Tools
+
+| Tool Name | Function |
+|-----------|----------|
+| `hy3_research` | Deep research: search + analysis + report generation |
+| `hy3_code_review` | Code review: bug detection + performance analysis + security audit |
+| `hy3_doc_qa` | Document Q&A: file parsing + precise answering |
+| `hy3_data_analyze` | Data analysis: CSV/JSON + insight output |
+| `hy3_chat` | General chat: free-form Q&A |
