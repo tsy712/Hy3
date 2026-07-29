@@ -9,7 +9,7 @@ This project is the complete implementation of Tencent Rhino-Bird Open Source Pr
 ### Hy3's Role in the Project
 
 | Feature | Hy3's Role |
-|---------|------------|
+|---------|-----------|
 | Deep Research | Research plan formulation → Search keyword generation → Long-form report writing → Executive summary extraction |
 | Code Analysis | Code comprehension, Bug detection, Performance optimization suggestions, Security audit, Quality scoring |
 | Document Q&A | Multi-document reading comprehension, Evidence-driven precise Q&A |
@@ -17,25 +17,17 @@ This project is the complete implementation of Tencent Rhino-Bird Open Source Pr
 ## Project Structure
 
 ```
-hy3-research-assistant-package/
+hy3-research-assistant/
 ├── backend/
 │   ├── main.py            # FastAPI server (6 API endpoints, all SSE streaming)
 │   ├── hy3_client.py      # Hy3 API client wrapper (OpenAI-compatible)
-│   ├── tools.py            # Utility functions (web search, PDF/DOCX/code parsing)
-│   ├── cli.py              # CLI entry point (hy3-research command after pip install)
-│   └── requirements.txt   # Python dependencies
-├── hy3-mcp-server/         # MCP Server sub-project (installable independently)
-│   ├── src/                # Source code
-│   │   ├── server.py       # FastMCP server (5 Tools)
-│   │   └── hy3_client.py  # Hy3 API client
-│   ├── pyproject.toml      # pip install configuration
+│   ├── tools.py            # Utility functions (web search, PDF/DOCX/code file parsing)
 │   └── requirements.txt   # Python dependencies
 ├── frontend/
 │   └── index.html          # Modern web frontend (dark theme, streaming, Markdown rendering)
-├── pyproject.toml          # Main project pip install configuration
 ├── .env.example            # Environment variable template
+├── .gitignore
 ├── start.bat               # Windows one-click launch script
-├── 安装说明.md              # Detailed installation guide
 └── README.md
 ```
 
@@ -46,36 +38,27 @@ hy3-research-assistant-package/
 - Python 3.9+
 - A valid Hy3 API Key
 
-### Option 1: pip Install (Recommended)
+### Install & Launch
 
 ```bash
-cd hy3-research-assistant-package
+# 1. Clone the project
+cd hy3-research-assistant
 
-# pip install (auto-handles dependencies)
-pip install -e .
-
-# Configure API key
-# Windows:  set HY3_API_KEY=your-api-key
-# macOS/Linux: export HY3_API_KEY=your-api-key
+# 2. Configure API key
+# Windows
+set HY3_API_KEY=your-api-key
 # Or copy .env.example to .env and fill in your key
 
-# One-click launch
-hy3-research
+# 3. Install dependencies
+cd backend
+pip install -r requirements.txt
+
+# 4. Start the server
+python main.py
 # Service runs at http://localhost:8000
 ```
 
-### Option 2: Manual Install
-
-```bash
-cd backend
-pip install -r requirements.txt
-cd ..
-python backend/main.py
-```
-
-### Option 3: Windows One-Click Launch
-
-Double-click `start.bat` (auto-detects API Key, installs dependencies, starts service)
+Open your browser and visit `http://localhost:8000`.
 
 ### Optional Environment Variables
 
@@ -135,50 +118,11 @@ All intelligent endpoints use Server-Sent Events (SSE) for streaming output, sup
 - **Model**: Tencent Hunyuan Hy3 (via OpenAI-compatible interface)
 - **Tools**: DuckDuckGo web search, PyPDF2, python-docx
 
-## Hy3 MCP Server
-
-`hy3-mcp-server` is a standalone sub-project that wraps Hy3 capabilities as MCP protocol tools.
-
-### Quick Install
-
-```bash
-cd hy3-mcp-server
-pip install -e .
-# Or double-click setup.bat (Windows)
-```
-
-### Configure Claude Desktop
-
-Add to `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "hy3": {
-      "command": "hy3-mcp",
-      "env": { "HY3_API_KEY": "your-api-key" }
-    }
-  }
-}
-```
-
-### MCP Tool List
-
-| Tool Name | Function |
-|-----------|----------|
-| `hy3_research` | Deep research: search + analysis + report |
-| `hy3_code_review` | Code review: bug detection + performance + security |
-| `hy3_doc_qa` | Document Q&A: parsing + precise answers |
-| `hy3_data_analyze` | Data analysis: CSV/JSON + insights |
-| `hy3_chat` | General chat |
-
----
-
 ## CodeBuddy Collaboration Notes
 
 This project was built with the assistance of CodeBuddy AI programming assistant:
 
 - **Collaborative Design**: AI participated in overall architecture planning, feature module decomposition, and front-end/back-end interaction design
-- **Code Generation**: AI wrote the backend server, API client, utility functions, and frontend interface
-- **Documentation**: AI generated the README, configuration templates, startup scripts, and installation guides
-- **Package Creation**: AI created pyproject.toml, enabling `pip install -e .` installation
+- **Code Generation**: AI wrote `backend/main.py` (server and all prompt engineering), `backend/hy3_client.py` (API client wrapper), `backend/tools.py` (search and file parsing), `frontend/index.html` (complete frontend interface)
+- **Documentation**: AI generated the README, configuration templates, and startup scripts
+- **Code Review & Polish**: AI assisted with syntax checking, Chinese-English translation, and structural optimization
