@@ -1,12 +1,7 @@
 """
-Hy3 Research Assistant — FastAPI backend server
-/ Hy3 Research Assistant —— FastAPI 后端服务器
-
-Provides API endpoints for three features: Deep Research, Code Analysis, and Document Q&A.
-/ 提供三大功能的 API 端点：深度研究、代码分析、文档问答
-
-All intelligent tasks are completed via the Hy3 large model.
-/ 所有智能任务均通过 Hy3 大模型完成。
+Hy3 Research Assistant — FastAPI Backend Server
+Provides API endpoints for three core features: Deep Research, Code Analysis, Document Q&A
+All intelligent tasks are powered by the Hy3 large language model.
 """
 
 import os
@@ -17,113 +12,115 @@ import asyncio
 from typing import Optional
 
 from fastapi import FastAPI, UploadFile, File, Form
-from fastapi.responses import StreamingResponse, HTMLResponse
+from fastapi.responses import StreamingResponse, HTMLResponse, PlainTextResponse
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 
 from hy3_client import get_hy3_client
 from tools import web_search, read_file_content, truncate_text, load_dotenv
 
-# Load .env file / 加载 .env 文件
+# Load .env file
 load_dotenv()
 
-# Logging / 日志
+# Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Hy3 Research Assistant / Hy3 研究助手", version="1.0.0")
+app = FastAPI(title="Hy3 Research Assistant", version="1.0.0")
 
-# Frontend directory / 前端目录
+# Mount frontend static files
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
+if os.path.isdir(FRONTEND_DIR):
+    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 
-# ━━━━━ Home Page / 首页 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Homepage
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
-    """Serve the frontend page. / 返回前端页面"""
+    """Return the frontend page"""
     index_path = os.path.join(FRONTEND_DIR, "index.html")
     if os.path.exists(index_path):
-
-        async def _read():
-            with open(index_path, "r", encoding="utf-8") as f:
-                return f.read()
-
-        content = await asyncio.to_thread(_read)
-        return HTMLResponse(content)
-    return HTMLResponse("<h1>Frontend file not found / 前端文件未找到</h1>", status_code=404)
+        with open(index_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(f.read())
+    return HTMLResponse("<h1>Frontend file not found</h1>", status_code=404)
 
 
 @app.get("/health")
 async def health():
-    """Health check endpoint. / 健康检查"""
+    """Health check"""
     client = get_hy3_client()
     return {"status": "ok", "model": client.model, "base_url": client.base_url}
 
 
-# ━━━━━ Feature 1: Deep Research / 功能一：深度研究 ━━━━━━━━━
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Feature 1: Deep Research
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-# Hy3 prompt: Research planning / Hy3 提示词：研究规划
-RESEARCH_PLAN_PROMPT = """你是一位资深的研究分析师。请根据用户的研究主题，制定一个详细的研究计划。
+# Hy3 Prompt: Research Planning
+RESEARCH_PLAN_PROMPT = """You are a senior research analyst. Based on the user's research topic, create a detailed research plan.
 
-要求：
-1. 将研究主题分解为 3-5 个核心子问题
-2. 为每个子问题提供具体的搜索关键词建议
-3. 以 JSON 格式输出，结构如下：
+Requirements:
+1. Decompose the research topic into 3-5 core sub-questions
+2. Provide specific search keyword suggestions for each sub-question
+3. Output in JSON format with the following structure:
 {
-  "topic": "研究主题",
+  "topic": "research topic",
   "sub_questions": [
-    {"question": "子问题", "search_keywords": ["关键词1", "关键词2"]}
+    {"question": "sub-question", "search_keywords": ["keyword1", "keyword2"]}
   ],
-  "approach": "整体研究方法说明"
+  "approach": "overall research methodology description"
 }
 
-用户研究主题：{topic}
+User's research topic: {topic}
 
-请仅输出 JSON，不要有任何其他内容。"""
+Please output JSON only, nothing else."""
 
-# Hy3 prompt: Research report writing / Hy3 提示词：研究报告撰写
-RESEARCH_REPORT_PROMPT = """你是一位资深的研究分析师。请根据以下搜索资料，撰写一份全面深入的研究报告。
+# Hy3 Prompt: Research Report Writing
+RESEARCH_REPORT_PROMPT = """You are a senior research analyst. Based on the following search materials, write a comprehensive and in-depth research report.
 
-要求：
-1. 报告长度：1500-3000 字
-2. 结构清晰：包含摘要、背景、核心分析（分章节）、结论、参考文献
-3. 使用 Markdown 格式
-4. 基于提供的搜索资料，标注引用来源
-5. 语言专业但通俗易懂
+Requirements:
+1. Report length: 1500-3000 words
+2. Clear structure: including abstract, background, core analysis (by chapters), conclusion, and references
+3. Use Markdown format
+4. Based on the provided search materials, cite sources
+5. Professional yet accessible language
 
-研究主题：{topic}
+Research topic: {topic}
 
-搜索资料：
+Search materials:
 {search_results}
 
-请撰写研究报告："""
+Please write the research report:"""
 
-# Hy3 prompt: Executive summary / Hy3 提示词：执行摘要
-RESEARCH_SUMMARY_PROMPT = """请为以下研究报告撰写一个 200-300 字的执行摘要。用简洁的语言概括核心发现和关键结论。
+# Hy3 Prompt: Executive Summary
+RESEARCH_SUMMARY_PROMPT = """Please write a 200-300 word executive summary for the following research report. Summarize the core findings and key conclusions concisely.
 
-研究报告：
+Research report:
 {report}
 
-执行摘要："""
+Executive summary:"""
 
 
 def _parse_plan(plan_raw: str, topic: str) -> dict:
-    """Robustly parse the research plan JSON. / 鲁棒地解析研究计划 JSON"""
+    """Robustly parse the research plan JSON"""
     default = {"sub_questions": [{"question": topic, "search_keywords": [topic]}]}
 
     cleaned = plan_raw.strip()
-    # Strip markdown code blocks / 移除 markdown 代码块包裹
+    # Remove markdown code block wrapping
     cleaned = re.sub(r'^```(?:json)?\s*', '', cleaned)
     cleaned = re.sub(r'\s*```$', '', cleaned)
     cleaned = cleaned.strip()
 
-    # Method 1: Direct parse / 方式1：直接解析
+    # Method 1: Direct parsing
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError:
         pass
 
-    # Method 2: Regex-extract first JSON object (supports nesting) / 方式2：正则提取第一个 JSON 对象（支持嵌套）
+    # Method 2: Regex extract first JSON object (supports nesting)
     depth = 0
     start = -1
     for i, ch in enumerate(cleaned):
@@ -139,19 +136,19 @@ def _parse_plan(plan_raw: str, topic: str) -> dict:
                 except json.JSONDecodeError:
                     break
 
-    logger.warning("Unable to parse research plan JSON, using default strategy / 无法解析研究计划 JSON，使用默认策略")
+    logger.warning("Unable to parse research plan JSON, using default strategy")
     return default
 
 
 @app.post("/api/research")
 async def deep_research(topic: str = Form(...)):
-    """Deep Research: Plan → Search → Report → Summary (streaming). / 深度研究：规划 → 搜索 → 报告 → 摘要（流式返回）"""
+    """Deep research: planning → search → report → summary (streaming response)"""
     client = get_hy3_client()
-    logger.info("Starting deep research / 开始深度研究: %s", topic)
+    logger.info("Starting deep research: %s", topic)
 
     async def event_stream():
-        # Phase 1: Generate research plan / 阶段1：生成研究计划
-        yield f"data: {json.dumps({'phase': 'planning', 'msg': '📋 Generating research plan... / 正在制定研究计划...'}, ensure_ascii=False)}\n\n"
+        # Phase 1: Generate research plan
+        yield f"data: {json.dumps({'phase': 'planning', 'msg': '📋 Generating research plan...'}, ensure_ascii=False)}\n\n"
         plan_prompt = RESEARCH_PLAN_PROMPT.format(topic=topic)
         plan_raw = ""
         async for token in client.chat_stream(
@@ -160,10 +157,10 @@ async def deep_research(topic: str = Form(...)):
             max_tokens=2048,
         ):
             plan_raw += token
-        yield f"data: {json.dumps({'phase': 'planning', 'msg': '✅ Research plan generated / 研究计划已生成', 'plan': plan_raw}, ensure_ascii=False)}\n\n"
+        yield f"data: {json.dumps({'phase': 'planning', 'msg': '✅ Research plan generated', 'plan': plan_raw}, ensure_ascii=False)}\n\n"
 
-        # Phase 2: Parse plan and execute search / 阶段2：解析计划并执行搜索
-        yield f"data: {json.dumps({'phase': 'searching', 'msg': '🔍 Searching for relevant materials... / 正在搜索相关资料...'}, ensure_ascii=False)}\n\n"
+        # Phase 2: Parse plan and execute search
+        yield f"data: {json.dumps({'phase': 'searching', 'msg': '🔍 Searching for relevant materials...'}, ensure_ascii=False)}\n\n"
 
         search_results = []
         plan = _parse_plan(plan_raw, topic)
@@ -173,17 +170,17 @@ async def deep_research(topic: str = Form(...)):
 
         for i, sq in enumerate(sub_questions):
             keywords = sq.get("search_keywords", [sq.get("question", topic)])
-            for kw in keywords[:2]:  # Max 2 keywords per sub-question / 每个子问题最多搜2个关键词
+            for kw in keywords[:2]:  # Up to 2 keywords per sub-question
                 result = await web_search(kw, num_results=3)
-                search_results.append(f"## Search / 搜索: {kw}\n{result}")
+                search_results.append(f"## Search: {kw}\n{result}")
                 yield f"data: {json.dumps({'phase': 'searching', 'msg': f'🔍 Searched: {kw} ({i+1}/{len(sub_questions)})'}, ensure_ascii=False)}\n\n"
                 await asyncio.sleep(0.5)
 
         search_text = "\n\n---\n\n".join(search_results)
-        yield f"data: {json.dumps({'phase': 'searching', 'msg': '✅ Search completed / 搜索完成', 'search_data': search_text[:2000]}, ensure_ascii=False)}\n\n"
+        yield f"data: {json.dumps({'phase': 'searching', 'msg': '✅ Search complete', 'search_data': search_text[:2000]}, ensure_ascii=False)}\n\n"
 
-        # Phase 3: Write report (streaming) / 阶段3：撰写报告（流式）
-        yield f"data: {json.dumps({'phase': 'reporting', 'msg': '✍️ Writing research report... / 正在撰写研究报告...'}, ensure_ascii=False)}\n\n"
+        # Phase 3: Write report (streaming)
+        yield f"data: {json.dumps({'phase': 'reporting', 'msg': '✍️ Writing research report...'}, ensure_ascii=False)}\n\n"
 
         report_prompt = RESEARCH_REPORT_PROMPT.format(
             topic=topic,
@@ -198,8 +195,8 @@ async def deep_research(topic: str = Form(...)):
             report_text += token
             yield f"data: {json.dumps({'phase': 'reporting', 'token': token}, ensure_ascii=False)}\n\n"
 
-        # Phase 4: Generate summary / 阶段4：生成摘要
-        yield f"data: {json.dumps({'phase': 'summarizing', 'msg': '📝 Generating executive summary... / 正在生成执行摘要...'}, ensure_ascii=False)}\n\n"
+        # Phase 4: Generate summary
+        yield f"data: {json.dumps({'phase': 'summarizing', 'msg': '📝 Generating executive summary...'}, ensure_ascii=False)}\n\n"
 
         summary_prompt = RESEARCH_SUMMARY_PROMPT.format(report=truncate_text(report_text, max_chars=5000))
         summary_text = ""
@@ -211,41 +208,43 @@ async def deep_research(topic: str = Form(...)):
             summary_text += token
             yield f"data: {json.dumps({'phase': 'summarizing', 'token': token}, ensure_ascii=False)}\n\n"
 
-        yield f"data: {json.dumps({'phase': 'done', 'msg': '🎉 Research completed! / 研究完成！'}, ensure_ascii=False)}\n\n"
+        yield f"data: {json.dumps({'phase': 'done', 'msg': '🎉 Research complete!'}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
-# ━━━━━ Feature 2: Code Analysis / 功能二：代码分析 ━━━━━━━━━━
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Feature 2: Code Analysis
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-# Hy3 prompt: Code analysis / Hy3 提示词：代码分析
-CODE_ANALYSIS_PROMPT = """你是一位资深软件工程师和代码审查专家。请对以下代码进行深入分析。
+# Hy3 Prompt: Code Analysis
+CODE_ANALYSIS_PROMPT = """You are a senior software engineer and code review expert. Please conduct an in-depth analysis of the following code.
 
-分析维度：
-1. **代码概览**：这段代码的核心功能是什么？
-2. **逻辑分析**：代码的执行逻辑和关键流程
-3. **潜在问题**：Bug、性能隐患、安全问题
-4. **优化建议**：具体的改进方案和最佳实践
-5. **代码质量评分**：1-10 分，并说明理由
+Analysis dimensions:
+1. **Code Overview**: What is the core functionality of this code?
+2. **Logic Analysis**: Execution logic and key flow
+3. **Potential Issues**: Bugs, performance issues, security concerns
+4. **Optimization Suggestions**: Specific improvement plans and best practices
+5. **Code Quality Score**: 1-10 rating with justification
 
-用户意图：{intent}
+User intent: {intent}
 
-代码内容：
+Code content:
 ```
 {code}
 ```
 
-请使用 Markdown 格式输出详细的分析报告。"""
+Please output a detailed analysis report in Markdown format."""
 
 
 @app.post("/api/analyze-code")
 async def analyze_code(
     code: str = Form(...),
-    intent: str = Form(default="Please provide a comprehensive analysis of this code / 请对这段代码进行全面分析"),
+    intent: str = Form(default="Please provide a comprehensive analysis of this code"),
 ):
-    """Code Analysis: Stream analysis results. / 代码分析：流式返回分析结果"""
+    """Code analysis: streaming output of analysis results"""
     client = get_hy3_client()
-    logger.info("Starting code analysis, code length / 开始代码分析，代码长度: %d", len(code))
+    logger.info("Starting code analysis, code length: %d", len(code))
 
     prompt = CODE_ANALYSIS_PROMPT.format(
         intent=intent,
@@ -253,14 +252,14 @@ async def analyze_code(
     )
 
     async def event_stream():
-        yield f"data: {json.dumps({'phase': 'analyzing', 'msg': '🔬 Analyzing code... / 正在分析代码...'}, ensure_ascii=False)}\n\n"
+        yield f"data: {json.dumps({'phase': 'analyzing', 'msg': '🔬 Analyzing code...'}, ensure_ascii=False)}\n\n"
         async for token in client.chat_stream(
             messages=[client.build_message("user", prompt)],
             temperature=0.3,
             max_tokens=8192,
         ):
             yield f"data: {json.dumps({'phase': 'analyzing', 'token': token}, ensure_ascii=False)}\n\n"
-        yield f"data: {json.dumps({'phase': 'done', 'msg': '✅ Analysis completed! / 分析完成！'}, ensure_ascii=False)}\n\n"
+        yield f"data: {json.dumps({'phase': 'done', 'msg': '✅ Analysis complete!'}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
@@ -268,15 +267,15 @@ async def analyze_code(
 @app.post("/api/analyze-code-file")
 async def analyze_code_file(
     file: UploadFile = File(...),
-    intent: str = Form(default="Please provide a comprehensive analysis of this code / 请对这段代码进行全面分析"),
+    intent: str = Form(default="Please provide a comprehensive analysis of this code"),
 ):
-    """Upload a code file for analysis. / 上传代码文件进行分析"""
+    """Upload a code file for analysis"""
     code_bytes = await file.read()
     code = await read_file_content(code_bytes, file.filename or "code.txt")
 
-    if code is None or code.startswith("[无法") or code.startswith("[不支持"):
+    if code is None or code.startswith("[Unable") or code.startswith("[Unsupported"):
         return StreamingResponse(
-            iter([f"data: {json.dumps({'phase': 'error', 'msg': code or 'File parsing failed / 文件解析失败'}, ensure_ascii=False)}\n\n"]),
+            iter([f"data: {json.dumps({'phase': 'error', 'msg': code or 'File parsing failed'}, ensure_ascii=False)}\n\n"]),
             media_type="text/event-stream",
         )
 
@@ -288,35 +287,37 @@ async def analyze_code_file(
     client = get_hy3_client()
 
     async def event_stream():
-        yield f"data: {json.dumps({'phase': 'analyzing', 'msg': f'🔬 Analyzing {file.filename}... / 正在分析 {file.filename}...'}, ensure_ascii=False)}\n\n"
+        yield f"data: {json.dumps({'phase': 'analyzing', 'msg': f'🔬 Analyzing {file.filename}...'}, ensure_ascii=False)}\n\n"
         async for token in client.chat_stream(
             messages=[client.build_message("user", prompt)],
             temperature=0.3,
             max_tokens=8192,
         ):
             yield f"data: {json.dumps({'phase': 'analyzing', 'token': token}, ensure_ascii=False)}\n\n"
-        yield f"data: {json.dumps({'phase': 'done', 'msg': '✅ Analysis completed! / 分析完成！'}, ensure_ascii=False)}\n\n"
+        yield f"data: {json.dumps({'phase': 'done', 'msg': '✅ Analysis complete!'}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
-# ━━━━━ Feature 3: Document Q&A / 功能三：文档问答 ━━━━━━━━━
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Feature 3: Document Q&A
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-# Hy3 prompt: Document Q&A / Hy3 提示词：文档问答
-DOC_QA_PROMPT = """你是一位专业的文档分析助手。请根据以下文档内容回答用户的问题。
+# Hy3 Prompt: Document Q&A
+DOC_QA_PROMPT = """You are a professional document analysis assistant. Please answer the user's question based on the following document content.
 
-要求：
-1. 回答必须基于提供的文档内容，不要编造信息
-2. 引用文档中的具体段落作为证据
-3. 如果文档中找不到相关信息，请明确说明
-4. 使用 Markdown 格式组织回答，使其易读
+Requirements:
+1. Answers must be based on the provided document content; do not fabricate information
+2. Cite specific passages from the documents as evidence
+3. If relevant information cannot be found in the documents, clearly state so
+4. Use Markdown format to organize the answer for readability
 
-文档内容：
+Document content:
 {document_text}
 
-用户问题：{question}
+User question: {question}
 
-请回答："""
+Please answer:"""
 
 
 @app.post("/api/qa-documents")
@@ -324,20 +325,20 @@ async def qa_documents(
     question: str = Form(...),
     files: list[UploadFile] = File(...),
 ):
-    """Multi-document Q&A: Upload docs + ask questions, Hy3 answers based on document content. / 多文档问答：上传文档 + 提问，Hy3 基于文档内容回答"""
+    """Multi-document Q&A: upload documents + ask question, Hy3 answers based on document content"""
     client = get_hy3_client()
-    logger.info("Document Q&A / 文档问答: %s, file count / 文件数: %d", question, len(files))
+    logger.info("Document Q&A: %s, file count: %d", question, len(files))
 
-    # Parse all documents / 解析所有文档
+    # Parse all documents
     doc_contents = []
     for f in files:
         content = await read_file_content(await f.read(), f.filename or "document")
         if content:
-            doc_contents.append(f"### File / 文件: {f.filename}\n{content}")
+            doc_contents.append(f"### File: {f.filename}\n{content}")
 
     if not doc_contents:
         async def error_stream():
-            yield f"data: {json.dumps({'phase': 'error', 'msg': 'All files failed to parse — check file format / 所有文件解析失败，请检查文件格式'}, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps({'phase': 'error', 'msg': 'All files failed to parse, please check file format'}, ensure_ascii=False)}\n\n"
         return StreamingResponse(error_stream(), media_type="text/event-stream")
 
     combined_text = "\n\n---\n\n".join(doc_contents)
@@ -347,21 +348,23 @@ async def qa_documents(
     )
 
     async def event_stream():
-        yield f"data: {json.dumps({'phase': 'analyzing', 'msg': f'📚 Loaded {len(files)} document(s), analyzing... / 已读取 {len(files)} 个文档，正在分析...'}, ensure_ascii=False)}\n\n"
+        yield f"data: {json.dumps({'phase': 'analyzing', 'msg': f'📚 Read {len(files)} documents, analyzing...'}, ensure_ascii=False)}\n\n"
         async for token in client.chat_stream(
             messages=[client.build_message("user", prompt)],
             temperature=0.5,
             max_tokens=4096,
         ):
             yield f"data: {json.dumps({'phase': 'analyzing', 'token': token}, ensure_ascii=False)}\n\n"
-        yield f"data: {json.dumps({'phase': 'done', 'msg': '✅ Answer completed! / 回答完成！'}, ensure_ascii=False)}\n\n"
+        yield f"data: {json.dumps({'phase': 'done', 'msg': '✅ Answer complete!'}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
-# ━━━━━ Entry Point / 启动入口 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Entry Point
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "8000"))
-    logger.info("Starting Hy3 Research Assistant server on port / 启动 Hy3 研究助手服务器，端口: %d", port)
+    logger.info("Starting Hy3 Research Assistant server on port %d", port)
     uvicorn.run(app, host="0.0.0.0", port=port)

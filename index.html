@@ -1,1066 +1,842 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hy3 研究助手 - 腾讯混元大模型</title>
+    <title>Hy3 Research Assistant — Deep Research · Code Analysis · Document Q&A</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>🔬</text></svg>">
+    <!-- marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            --bg: #0d1117;
-            --surface: #161b22;
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
             --border: #30363d;
-            --text: #e6edf3;
-            --text-muted: #8b949e;
-            --accent: #58a6ff;
-            --accent-hover: #79c0ff;
-            --success: #3fb950;
-            --warning: #d29922;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --text-link: #58a6ff;
+            --accent: #3fb950;
+            --accent-hover: #46954a;
             --danger: #f85149;
+            --warning: #d29922;
             --radius: 8px;
-            --shadow: 0 1px 3px rgba(0,0,0,0.3);
+            --transition: 0.2s ease;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
+            line-height: 1.6;
         }
 
-        /* 头部 */
+        /* ── Header ──────────────────────────────── */
+
         .header {
-            background: var(--surface);
+            background: var(--bg-secondary);
             border-bottom: 1px solid var(--border);
             padding: 16px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
             position: sticky;
             top: 0;
             z-index: 100;
-        }
-        .header h1 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, var(--accent), #a371f7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .header .badge {
-            font-size: 0.75rem;
-            padding: 4px 12px;
-            border-radius: 12px;
-            background: rgba(88,166,255,0.1);
-            color: var(--accent);
-            border: 1px solid rgba(88,166,255,0.2);
+            backdrop-filter: blur(12px);
         }
 
-        /* 标签页导航 */
-        .tabs {
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
-            gap: 4px;
-            padding: 8px 24px;
-            background: var(--bg);
-            border-bottom: 1px solid var(--border);
+            align-items: center;
+            justify-content: space-between;
         }
-        .tab-btn {
-            padding: 10px 20px;
-            border: none;
-            background: transparent;
-            color: var(--text-muted);
-            cursor: pointer;
-            border-radius: var(--radius);
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            font-family: inherit;
-        }
-        .tab-btn:hover { color: var(--text); background: var(--surface); }
-        .tab-btn.active {
-            color: var(--accent);
-            background: rgba(88,166,255,0.08);
-            font-weight: 500;
-        }
-        .tab-btn .icon { margin-right: 6px; }
 
-        /* 主内容区 */
-        .main {
-            max-width: 1000px;
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+        }
+
+        .header-badge {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(63, 185, 80, 0.15);
+            color: var(--accent);
+            font-weight: 500;
+            border: 1px solid rgba(63, 185, 80, 0.3);
+        }
+
+        /* ── Layout ───────────────────────────────── */
+
+        .container {
+            max-width: 1200px;
             margin: 0 auto;
             padding: 24px;
         }
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
 
-        /* 输入区 */
-        .input-card {
-            background: var(--surface);
+        /* ── Tab Bar ─────────────────────────────── */
+
+        .tab-nav {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 24px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: #000;
+            font-weight: 600;
+        }
+
+        /* ── Card ─────────────────────────────────── */
+
+        .card {
+            background: var(--bg-secondary);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 20px;
+            padding: 24px;
             margin-bottom: 16px;
         }
-        .input-card label {
-            display: block;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 8px;
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .input-card textarea,
-        .input-card input[type="text"] {
+
+        /* ── Form Elements ────────────────────────── */
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
             width: 100%;
-            padding: 12px;
-            background: var(--bg);
+            padding: 10px 14px;
+            background: var(--bg-primary);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            color: var(--text);
-            font-size: 0.95rem;
+            color: var(--text-primary);
+            font-size: 14px;
             font-family: inherit;
+            transition: border-color var(--transition);
             resize: vertical;
-            transition: border-color 0.2s;
         }
-        .input-card textarea:focus,
-        .input-card input:focus {
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(88,166,255,0.15);
+            box-shadow: 0 0 0 3px rgba(63, 185, 80, 0.1);
         }
-        .input-card textarea { min-height: 100px; }
 
-        .btn-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-            flex-wrap: wrap;
+        .form-textarea {
+            min-height: 150px;
+            font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.5;
         }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* ── Buttons ──────────────────────────────── */
+
         .btn {
-            padding: 10px 20px;
+            padding: 10px 24px;
             border: none;
             border-radius: var(--radius);
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 0.9rem;
-            font-family: inherit;
-            font-weight: 500;
-            transition: all 0.2s;
+            transition: all var(--transition);
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
+
         .btn-primary {
             background: var(--accent);
-            color: #fff;
+            color: #000;
         }
-        .btn-primary:hover { background: var(--accent-hover); }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
         .btn-primary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
-        .btn-outline {
-            background: transparent;
-            color: var(--text);
-            border: 1px solid var(--border);
-        }
-        .btn-outline:hover { background: var(--surface); }
 
-        /* 文件上传 */
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        /* ── File Upload Area ─────────────────────── */
+
         .file-upload-area {
             border: 2px dashed var(--border);
             border-radius: var(--radius);
-            padding: 20px;
+            padding: 32px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all var(--transition);
+            background: var(--bg-primary);
+        }
+
+        .file-upload-area:hover,
+        .file-upload-area.dragover {
+            border-color: var(--accent);
+            background: rgba(63, 185, 80, 0.05);
+        }
+
+        .file-upload-icon {
+            font-size: 40px;
             margin-bottom: 12px;
         }
-        .file-upload-area:hover {
-            border-color: var(--accent);
-            background: rgba(88,166,255,0.04);
+
+        .file-upload-text {
+            color: var(--text-secondary);
+            font-size: 14px;
         }
-        .file-upload-area.drag-over {
-            border-color: var(--accent);
-            background: rgba(88,166,255,0.08);
+
+        .file-upload-text strong {
+            color: var(--text-link);
         }
+
         .file-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 8px;
+            margin-top: 12px;
         }
-        .file-tag {
-            display: inline-flex;
+
+        .file-item {
+            display: flex;
             align-items: center;
-            gap: 4px;
-            padding: 4px 10px;
-            background: var(--bg);
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: var(--bg-primary);
             border: 1px solid var(--border);
             border-radius: 6px;
-            font-size: 0.8rem;
-            color: var(--text);
+            margin-bottom: 6px;
+            font-size: 13px;
         }
-        .file-tag .remove {
-            cursor: pointer;
-            color: var(--text-muted);
-            font-weight: bold;
-        }
-        .file-tag .remove:hover { color: var(--danger); }
 
-        /* 结果区 */
-        .result-card {
-            background: var(--surface);
+        .file-item .remove-file {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0 4px;
+        }
+
+        /* ── Output Area ───────────────────────────── */
+
+        .output-area {
+            display: none;
+            margin-top: 16px;
+        }
+
+        .output-area.active {
+            display: block;
+        }
+
+        .output-status {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+        }
+
+        .output-content {
+            background: var(--bg-primary);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 24px;
-            min-height: 100px;
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.7;
         }
-        .result-card .phase-msg {
-            color: var(--accent);
-            font-weight: 500;
-            margin-bottom: 12px;
-        }
-        .result-card .content {
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-        .result-card .content h1, .result-card .content h2, .result-card .content h3 {
-            color: var(--text);
-            margin: 16px 0 8px;
-        }
-        .result-card .content code {
-            background: var(--bg);
+
+        /* Markdown styles */
+        .output-content h1 { font-size: 24px; margin: 16px 0 12px; }
+        .output-content h2 { font-size: 20px; margin: 14px 0 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+        .output-content h3 { font-size: 16px; margin: 12px 0 8px; }
+        .output-content p { margin: 8px 0; }
+        .output-content ul, .output-content ol { margin: 8px 0; padding-left: 24px; }
+        .output-content li { margin: 4px 0; }
+        .output-content code {
+            background: var(--bg-tertiary);
             padding: 2px 6px;
             border-radius: 4px;
-            font-size: 0.85em;
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: 13px;
         }
-        .result-card .content pre {
-            background: var(--bg);
+        .output-content pre {
+            background: var(--bg-secondary);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 16px;
             overflow-x: auto;
-            margin: 8px 0;
+            margin: 12px 0;
         }
-        .result-card .content pre code {
+        .output-content pre code {
             background: none;
             padding: 0;
         }
-
-        /* 结果操作栏 */
-        .result-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-            flex-wrap: wrap;
+        .output-content blockquote {
+            border-left: 3px solid var(--accent);
+            padding-left: 12px;
+            color: var(--text-secondary);
+            margin: 12px 0;
         }
-        .result-actions .btn {
-            font-size: 0.8rem;
-            padding: 6px 14px;
+        .output-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
         }
-        .btn-copy, .btn-download {
-            background: var(--surface);
-            color: var(--text);
+        .output-content th, .output-content td {
             border: 1px solid var(--border);
+            padding: 8px 12px;
+            text-align: left;
         }
-        .btn-copy:hover, .btn-download:hover {
-            background: var(--bg);
-            border-color: var(--accent);
+        .output-content th {
+            background: var(--bg-tertiary);
         }
-        .btn-copy.copied {
-            background: rgba(63,185,80,0.15);
-            border-color: var(--success);
-            color: var(--success);
-        }
+
+        /* ── Loading ──────────────────────────────── */
 
         .loading-spinner {
             display: inline-block;
             width: 16px;
             height: 16px;
-            border: 2px solid var(--border);
+            border: 2px solid var(--text-secondary);
             border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Markdown CDN 降级时显示原始文本 */
-        .no-markdown .content .report-body,
-        .no-markdown .content .summary-body,
-        .no-markdown .content:not(:has(.report-body, .summary-body)) {
-            white-space: pre-wrap;
-            font-family: 'Consolas', 'Source Code Pro', monospace;
-            font-size: 0.9rem;
+            vertical-align: middle;
+            margin-right: 8px;
         }
 
-        .empty-state {
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ── Footer ───────────────────────────────── */
+
+        .footer {
             text-align: center;
-            color: var(--text-muted);
-            padding: 40px;
+            padding: 24px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            border-top: 1px solid var(--border);
+            margin-top: 48px;
         }
-        .empty-state .icon { font-size: 2.5rem; margin-bottom: 8px; opacity: 0.5; }
 
-        /* Toast 提示 */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .toast {
-            padding: 12px 20px;
-            border-radius: var(--radius);
-            color: #fff;
-            font-size: 0.85rem;
-            animation: slideIn 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .toast.success { background: #238636; }
-        .toast.error { background: #da3633; }
-        .toast.info { background: var(--accent); }
+        /* ── Responsive ───────────────────────────── */
 
-        /* 响应式 */
-        @media (max-width: 640px) {
-            .header { padding: 12px 16px; }
-            .main { padding: 16px; }
-            .tabs { padding: 8px 16px; overflow-x: auto; }
-            .tab-btn { padding: 8px 14px; font-size: 0.8rem; white-space: nowrap; }
+        @media (max-width: 768px) {
+            .container { padding: 16px; }
+            .tab-nav { flex-wrap: wrap; }
+            .tab-btn { flex: 1 1 40%; font-size: 13px; padding: 10px; }
+            .header-inner { flex-direction: column; gap: 8px; }
         }
     </style>
-    <!-- CDN 多源加载：jsdelivr(优先) → unpkg(备用) → 本地降级 -->
-    <script>
-    (function loadCDN() {
-        // marked.js 加载器
-        function loadScript(primary, fallback, callback) {
-            var s = document.createElement('script');
-            s.src = primary;
-            s.onload = function() { if (callback) callback(true); };
-            s.onerror = function() {
-                if (fallback) {
-                    var f = document.createElement('script');
-                    f.src = fallback;
-                    f.onload = function() { if (callback) callback(true); };
-                    f.onerror = function() { if (callback) callback(false); };
-                    document.head.appendChild(f);
-                } else { if (callback) callback(false); }
-            };
-            document.head.appendChild(s);
-        }
-        // 加载 marked.js
-        loadScript(
-            'https://cdn.jsdelivr.net/npm/marked/marked.min.js',
-            'https://unpkg.com/marked/marked.min.js',
-            function(ok) { if (!ok) { console.warn('marked.js 加载失败，将显示原始文本'); document.body.classList.add('no-markdown'); } }
-        );
-        // 加载 highlight.js CSS
-        var css = document.createElement('link'); css.rel = 'stylesheet';
-        css.href = 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css';
-        css.onerror = function() { this.onerror = null; this.href = 'https://unpkg.com/@highlightjs/cdn-assets@11.9.0/styles/github-dark.min.css'; };
-        document.head.appendChild(css);
-        // 加载 highlight.js core
-        loadScript(
-            'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/core.min.js',
-            'https://unpkg.com/@highlightjs/cdn-assets@11.9.0/highlight.min.js',
-            function(ok) {
-                if (!ok) { console.warn('highlight.js 加载失败，代码高亮将不可用'); return; }
-                // core 加载成功后，加载常用语言（备用源使用完整版已内置所有语言，无需额外加载）
-                var langs = ['javascript','python','java','cpp','typescript','go','rust','sql','bash','json','yaml'];
-                langs.forEach(function(l) {
-                    var sl = document.createElement('script');
-                    sl.src = 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/' + l + '.min.js';
-                    sl.onerror = function() {
-                        this.onerror = null;
-                        this.src = 'https://unpkg.com/@highlightjs/cdn-assets@11.9.0/languages/' + l + '.min.js';
-                    };
-                    document.head.appendChild(sl);
-                });
-            }
-        );
-    })();
-    </script>
 </head>
 <body>
-    <!-- 头部 -->
-    <div class="header">
-        <h1 data-i18n="header.title">Hy3 研究助手</h1>
-        <div style="display:flex;align-items:center;gap:12px;">
-            <span class="badge" data-i18n="header.badge">腾讯混元大模型</span>
-            <button class="btn btn-outline lang-toggle" onclick="toggleLang()" style="font-size:0.75rem;padding:4px 10px;" title="Switch Language / 切换语言">
-                <span id="lang-label">EN</span>
-            </button>
-        </div>
-    </div>
 
-    <!-- 标签页 -->
-    <div class="tabs">
+<!-- Header -->
+<header class="header">
+    <div class="header-inner">
+        <a href="/" class="logo">
+            <span class="logo-icon">🔬</span>
+            Hy3 Research Assistant
+        </a>
+        <span class="header-badge">Powered by Tencent Hunyuan Hy3</span>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- Tab Navigation -->
+    <nav class="tab-nav">
         <button class="tab-btn active" data-tab="research">
-            <span class="icon">🔬</span> <span data-i18n="tab.research">深度研究</span>
+            🔬 Deep Research
         </button>
         <button class="tab-btn" data-tab="code">
-            <span class="icon">💻</span> <span data-i18n="tab.code">代码分析</span>
+            💻 Code Analysis
         </button>
         <button class="tab-btn" data-tab="qa">
-            <span class="icon">📚</span> <span data-i18n="tab.qa">文档问答</span>
+            📚 Document Q&A
         </button>
+    </nav>
+
+    <!-- ======== Deep Research Tab ======== -->
+    <div class="tab-panel active" id="panel-research">
+        <div class="card">
+            <div class="card-title">🔬 Deep Research</div>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">
+                Enter a research topic and Hy3 will automatically plan, search, write a report, and generate an executive summary.
+            </p>
+            <div class="form-group">
+                <label class="form-label" for="research-topic">Research Topic</label>
+                <input type="text" class="form-input" id="research-topic"
+                       placeholder="e.g. Recent breakthroughs in quantum computing, The impact of AI on education...">
+            </div>
+            <button class="btn btn-primary" id="btn-research" onclick="startResearch()">
+                🚀 Start Research
+            </button>
+        </div>
+
+        <div class="output-area" id="output-research">
+            <div class="output-status" id="status-research"></div>
+            <div class="output-content" id="content-research"></div>
+        </div>
     </div>
 
-    <!-- 主内容 -->
-    <div class="main">
+    <!-- ======== Code Analysis Tab ======== -->
+    <div class="tab-panel" id="panel-code" style="display: none;">
+        <div class="card">
+            <div class="card-title">💻 Code Analysis</div>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">
+                Paste code or upload a code file for intelligent analysis.
+            </p>
 
-        <!-- 功能1：深度研究 -->
-        <div id="tab-research" class="tab-panel active">
-            <div class="input-card">
-                <label data-i18n="research.label">🔬 研究主题</label>
-                <textarea id="research-topic" data-i18n-placeholder="research.placeholder" placeholder="请输入你想深入研究的主题，例如：量子计算在药物研发中的应用前景"></textarea>
-                <div class="btn-row">
-                    <button class="btn btn-primary" id="btn-research" onclick="startResearch()">
-                        <span data-i18n="research.start">🚀 开始研究</span>
-                    </button>
-                    <button class="btn btn-outline" onclick="resetResult('research-result')" data-i18n="common.clear">清空结果</button>
-                </div>
+            <!-- Paste Code -->
+            <div class="form-group">
+                <label class="form-label" for="code-content">Code Content</label>
+                <textarea class="form-textarea" id="code-content"
+                          placeholder="Paste your code here..."></textarea>
+                <div class="form-hint">Supports Python, JavaScript, Java, C/C++, Go, Rust, and other programming languages</div>
             </div>
-            <div class="result-card" id="research-result">
-                <div class="empty-state">
-                    <div class="icon">🔬</div>
-                    <div data-i18n="research.empty">输入研究主题，Hy3 将自动进行规划、搜索和报告撰写</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- 功能2：代码分析 -->
-        <div id="tab-code" class="tab-panel">
-            <div class="input-card">
-                <label data-i18n="code.label">💻 粘贴代码或上传文件</label>
-                <textarea id="code-input" data-i18n-placeholder="code.placeholder" placeholder="在此粘贴你的代码..."></textarea>
-                <div style="margin:10px 0; color:var(--text-muted)" data-i18n="common.or">或</div>
+            <!-- Upload Code File -->
+            <div class="form-group">
+                <label class="form-label">Or Upload a File</label>
                 <div class="file-upload-area" id="code-upload-area" onclick="document.getElementById('code-file-input').click()">
-                    <span data-i18n="code.upload">📁 点击上传代码文件（支持 .py, .js, .ts, .java 等）</span>
-                    <input type="file" id="code-file-input" style="display:none" accept=".py,.js,.ts,.jsx,.tsx,.java,.cpp,.c,.go,.rs,.rb,.php" onchange="handleCodeFileSelect(event)">
+                    <div class="file-upload-icon">📁</div>
+                    <div class="file-upload-text">
+                        <strong>Click to select</strong> or drag and drop a code file here
+                    </div>
+                    <input type="file" id="code-file-input" style="display:none"
+                           accept=".py,.js,.ts,.jsx,.tsx,.java,.c,.cpp,.h,.hpp,.go,.rs,.rb,.php,.swift,.kt,.scala,.html,.css,.json,.yaml,.yml,.xml,.toml,.cfg,.ini,.sh,.bat,.ps1,.txt,.md"
+                           onchange="handleCodeFile(this)">
                 </div>
-                <label data-i18n="code.intent">分析意图（可选）</label>
-                <input type="text" id="code-intent" data-i18n-placeholder="code.intent.placeholder" placeholder="例如：查找 Bug、性能优化、安全审计">
-                <div class="btn-row">
-                    <button class="btn btn-primary" id="btn-code" onclick="startCodeAnalysis()">
-                        <span data-i18n="code.analyze">🔍 分析代码</span>
-                    </button>
-                    <button class="btn btn-outline" onclick="resetResult('code-result')" data-i18n="common.clear">清空结果</button>
-                </div>
+                <div class="file-list" id="code-file-list"></div>
             </div>
-            <div class="result-card" id="code-result">
-                <div class="empty-state">
-                    <div class="icon">💻</div>
-                    <div data-i18n="code.empty">输入代码，Hy3 将进行全面分析并提供优化建议</div>
-                </div>
+
+            <div class="form-group">
+                <label class="form-label" for="code-intent">Analysis Intent (optional)</label>
+                <input type="text" class="form-input" id="code-intent"
+                       placeholder="e.g. Focus on security vulnerabilities, Analyze performance bottlenecks...">
             </div>
+            <button class="btn btn-primary" id="btn-code" onclick="startCodeAnalysis()">
+                🔬 Start Analysis
+            </button>
         </div>
 
-        <!-- 功能3：文档问答 -->
-        <div id="tab-qa" class="tab-panel">
-            <div class="input-card">
-                <label data-i18n="qa.label">📚 上传文档</label>
+        <div class="output-area" id="output-code">
+            <div class="output-status" id="status-code"></div>
+            <div class="output-content" id="content-code"></div>
+        </div>
+    </div>
+
+    <!-- ======== Document Q&A Tab ======== -->
+    <div class="tab-panel" id="panel-qa" style="display: none;">
+        <div class="card">
+            <div class="card-title">📚 Document Q&A</div>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">
+                Upload multiple documents (PDF, DOCX, TXT) then ask questions based on document content.
+            </p>
+
+            <!-- Upload Documents -->
+            <div class="form-group">
+                <label class="form-label">Upload Documents</label>
                 <div class="file-upload-area" id="qa-upload-area" onclick="document.getElementById('qa-file-input').click()">
-                    <span data-i18n="qa.upload">📁 点击或拖拽上传文档（支持 .txt, .pdf, .docx, .md, .py 等）</span>
-                    <input type="file" id="qa-file-input" style="display:none" multiple accept=".txt,.pdf,.docx,.md,.py,.js,.ts,.json,.xml" onchange="handleQaFileSelect(event)">
+                    <div class="file-upload-icon">📄</div>
+                    <div class="file-upload-text">
+                        <strong>Click to select</strong> or drag and drop PDF / DOCX / TXT / code files
+                    </div>
+                    <input type="file" id="qa-file-input" style="display:none" multiple
+                           accept=".pdf,.docx,.txt,.md,.py,.js,.ts,.jsx,.tsx,.html,.css,.json,.xml,.yaml,.yml,.csv,.log,.cfg,.ini"
+                           onchange="handleQAFiles(this)">
                 </div>
                 <div class="file-list" id="qa-file-list"></div>
-                <label data-i18n="qa.question">你的问题</label>
-                <textarea id="qa-question" data-i18n-placeholder="qa.question.placeholder" placeholder="请根据文档内容提问..."></textarea>
-                <div class="btn-row">
-                    <button class="btn btn-primary" id="btn-qa" onclick="startDocQA()">
-                        <span data-i18n="qa.submit">💬 提交问题</span>
-                    </button>
-                    <button class="btn btn-outline" onclick="resetResult('qa-result')" data-i18n="common.clear">清空结果</button>
-                </div>
             </div>
-            <div class="result-card" id="qa-result">
-                <div class="empty-state">
-                    <div class="icon">📚</div>
-                    <div data-i18n="qa.empty">上传文档后提问，Hy3 将基于文档内容精准回答</div>
-                </div>
+
+            <div class="form-group">
+                <label class="form-label" for="qa-question">Your Question</label>
+                <input type="text" class="form-input" id="qa-question"
+                       placeholder="e.g. What is the main conclusion of this document? Summarize the key points...">
             </div>
+            <button class="btn btn-primary" id="btn-qa" onclick="startQA()">
+                🤔 Ask
+            </button>
+        </div>
+
+        <div class="output-area" id="output-qa">
+            <div class="output-status" id="status-qa"></div>
+            <div class="output-content" id="content-qa"></div>
         </div>
     </div>
 
-    <!-- Toast 容器 -->
-    <div class="toast-container" id="toast-container"></div>
+</div>
 
-    <script>
-        // ── 国际化 (i18n) ─────────────────────────────────
-        const i18n = {
-            zh: {
-                'header.title': 'Hy3 研究助手',
-                'header.badge': '腾讯混元大模型',
-                'tab.research': '深度研究',
-                'tab.code': '代码分析',
-                'tab.qa': '文档问答',
-                'common.clear': '清空结果',
-                'common.or': '或',
-                'research.label': '🔬 研究主题',
-                'research.placeholder': '请输入你想深入研究的主题，例如：量子计算在药物研发中的应用前景',
-                'research.start': '🚀 开始研究',
-                'research.empty': '输入研究主题，Hy3 将自动进行规划、搜索和报告撰写',
-                'code.label': '💻 粘贴代码或上传文件',
-                'code.placeholder': '在此粘贴你的代码...',
-                'code.upload': '📁 点击上传代码文件（支持 .py, .js, .ts, .java 等）',
-                'code.intent': '分析意图（可选）',
-                'code.intent.placeholder': '例如：查找 Bug、性能优化、安全审计',
-                'code.analyze': '🔍 分析代码',
-                'code.empty': '输入代码，Hy3 将进行全面分析并提供优化建议',
-                'qa.label': '📚 上传文档',
-                'qa.upload': '📁 点击或拖拽上传文档（支持 .txt, .pdf, .docx, .md, .py 等）',
-                'qa.question': '你的问题',
-                'qa.question.placeholder': '请根据文档内容提问...',
-                'qa.submit': '💬 提交问题',
-                'qa.empty': '上传文档后提问，Hy3 将基于文档内容精准回答',
-                'status.connecting': '正在连接 Hy3...',
-                'status.planning': '📋 正在制定研究计划...',
-                'status.planDone': '✅ 研究计划已制定',
-                'status.searching': '🔍 正在搜索相关资料...',
-                'status.searched': '🔍 已搜索: {kw} ({i}/{total})',
-                'status.searchDone': '✅ 搜索完成',
-                'status.reporting': '✍️ 正在撰写研究报告...',
-                'status.summarizing': '📝 正在生成执行摘要...',
-                'status.done': '🎉 研究完成！',
-                'status.codeAnalyzing': '🔬 正在分析代码...',
-                'status.codeDone': '✅ 分析完成！',
-                'status.filesLoaded': '📚 已读取 {n} 个文档，正在分析...',
-                'status.qaDone': '✅ 回答完成！',
-                'status.fileAnalyzing': '🔬 正在分析 {filename}...',
-                'result.researchPlan': '📋 研究计划',
-                'result.searchResults': '🔍 搜索结果摘要',
-                'result.report': '📄 研究报告',
-                'result.summary': '📝 执行摘要',
-                'result.copy': '📋 复制',
-                'result.download': '📥 下载',
-                'result.copied': '✅ 已复制',
-                'toast.copied': '已复制到剪贴板',
-                'toast.copyFail': '复制失败',
-                'toast.noContent': '暂无可复制内容',
-                'toast.noDownload': '暂无可下载内容',
-                'toast.fileLoaded': '已加载文件: {name}',
-                'toast.downloaded': '已下载: {filename}',
-                'toast.error': '错误',
-                'error.noTopic': '请输入研究主题',
-                'error.noCode': '请粘贴代码或上传文件',
-                'error.noQuestion': '请输入问题',
-                'error.noFiles': '请至少上传一个文档',
-                'error.timeout': '请求超时（超过 5 分钟），请简化问题后重试',
-                'error.requestFail': '请求失败: {msg}',
-                'error.fileParse': '所有文件解析失败，请检查文件格式',
-                'download.research': '研究报告',
-                'download.code': '代码分析',
-                'download.qa': '文档问答',
-            },
-            en: {
-                'header.title': 'Hy3 Research Assistant',
-                'header.badge': 'Tencent Hunyuan LLM',
-                'tab.research': 'Deep Research',
-                'tab.code': 'Code Analysis',
-                'tab.qa': 'Document Q&A',
-                'common.clear': 'Clear',
-                'common.or': 'or',
-                'research.label': '🔬 Research Topic',
-                'research.placeholder': 'Enter a topic for deep research, e.g. Applications of quantum computing in drug discovery',
-                'research.start': '🚀 Start Research',
-                'research.empty': 'Enter a research topic and Hy3 will automatically plan, search, and write a report',
-                'code.label': '💻 Paste Code or Upload File',
-                'code.placeholder': 'Paste your code here...',
-                'code.upload': '📁 Click to upload code files (.py, .js, .ts, .java, etc.)',
-                'code.intent': 'Analysis Intent (optional)',
-                'code.intent.placeholder': 'e.g. Bug detection, performance optimization, security audit',
-                'code.analyze': '🔍 Analyze Code',
-                'code.empty': 'Enter code and Hy3 will perform a comprehensive analysis with optimization suggestions',
-                'qa.label': '📚 Upload Documents',
-                'qa.upload': '📁 Click or drag to upload documents (.txt, .pdf, .docx, .md, .py, etc.)',
-                'qa.question': 'Your Question',
-                'qa.question.placeholder': 'Ask a question based on the document content...',
-                'qa.submit': '💬 Submit Question',
-                'qa.empty': 'Upload documents, then ask questions — Hy3 will answer based on document content',
-                'status.connecting': 'Connecting to Hy3...',
-                'status.planning': '📋 Generating research plan...',
-                'status.planDone': '✅ Research plan generated',
-                'status.searching': '🔍 Searching for relevant materials...',
-                'status.searched': '🔍 Searched: {kw} ({i}/{total})',
-                'status.searchDone': '✅ Search completed',
-                'status.reporting': '✍️ Writing research report...',
-                'status.summarizing': '📝 Generating executive summary...',
-                'status.done': '🎉 Research completed!',
-                'status.codeAnalyzing': '🔬 Analyzing code...',
-                'status.codeDone': '✅ Analysis completed!',
-                'status.filesLoaded': '📚 Loaded {n} document(s), analyzing...',
-                'status.qaDone': '✅ Answer completed!',
-                'status.fileAnalyzing': '🔬 Analyzing {filename}...',
-                'result.researchPlan': '📋 Research Plan',
-                'result.searchResults': '🔍 Search Results Summary',
-                'result.report': '📄 Research Report',
-                'result.summary': '📝 Executive Summary',
-                'result.copy': '📋 Copy',
-                'result.download': '📥 Download',
-                'result.copied': '✅ Copied',
-                'toast.copied': 'Copied to clipboard',
-                'toast.copyFail': 'Copy failed',
-                'toast.noContent': 'No content to copy',
-                'toast.noDownload': 'No content to download',
-                'toast.fileLoaded': 'Loaded: {name}',
-                'toast.downloaded': 'Downloaded: {filename}',
-                'toast.error': 'Error',
-                'error.noTopic': 'Please enter a research topic',
-                'error.noCode': 'Please paste code or upload a file',
-                'error.noQuestion': 'Please enter a question',
-                'error.noFiles': 'Please upload at least one document',
-                'error.timeout': 'Request timed out (>5 min). Please simplify your query and try again.',
-                'error.requestFail': 'Request failed: {msg}',
-                'error.fileParse': 'All files failed to parse. Please check file formats.',
-                'download.research': 'Research Report',
-                'download.code': 'Code Analysis',
-                'download.qa': 'Document QA',
-            }
-        };
+<footer class="footer">
+    Built with ❤️ using Hy3 · Powered by Tencent Hunyuan Large Language Model
+</footer>
 
-        let currentLang = localStorage.getItem('hy3-lang') || 'zh';
+<script>
+// ===================== Tab Switching =====================
 
-        function t(key, params) {
-            const str = (i18n[currentLang] && i18n[currentLang][key]) || (i18n['zh'][key]) || key;
-            if (!params) return str;
-            return str.replace(/\{(\w+)\}/g, (_, k) => params[k] !== undefined ? params[k] : '{' + k + '}');
-        }
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
 
-        function toggleLang() {
-            currentLang = currentLang === 'zh' ? 'en' : 'zh';
-            localStorage.setItem('hy3-lang', currentLang);
-            applyI18n();
-            document.getElementById('lang-label').textContent = currentLang === 'zh' ? 'EN' : '中文';
-        }
+        const tab = btn.dataset.tab;
+        document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+        document.getElementById('panel-' + tab).style.display = 'block';
+    });
+});
 
-        function applyI18n() {
-            // Update page title
-            document.title = t('header.title');
-            // Update language toggle label
-            document.getElementById('lang-label').textContent = currentLang === 'zh' ? 'EN' : '中文';
-            // Update all static [data-i18n] and [data-i18n-placeholder] elements
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                el.textContent = t(el.dataset.i18n);
-            });
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                el.placeholder = t(el.dataset.i18nPlaceholder);
-            });
-            // Re-render result cards if they are in empty state
-            ['research-result', 'code-result', 'qa-result'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el && el.querySelector('.empty-state')) {
-                    resetResult(id);
-                }
-            });
-        }
+// ===================== Deep Research =====================
 
-        // Apply i18n on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            applyI18n();
-        });
-        (function initMarkdownDeferred() {
-            function doInit() {
-                if (typeof hljs === 'undefined' || typeof marked === 'undefined') return false;
-                marked.setOptions({ breaks: true, gfm: true });
-                var renderer = new marked.Renderer();
-                renderer.code = function(_ref) {
-                    var text = _ref.text, lang = _ref.lang, escaped = _ref.escaped;
-                    if (lang && hljs.getLanguage(lang)) {
-                        try {
-                            var h = hljs.highlight(text, { language: lang }).value;
-                            return '<pre><code class="hljs language-' + lang + '">' + h + '</code></pre>';
-                        } catch (e) { /* fallthrough */ }
+async function startResearch() {
+    const topic = document.getElementById('research-topic').value.trim();
+    if (!topic) return alert('Please enter a research topic');
+
+    const btn = document.getElementById('btn-research');
+    const output = document.getElementById('output-research');
+    const statusEl = document.getElementById('status-research');
+    const contentEl = document.getElementById('content-research');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span> Researching...';
+    output.classList.add('active');
+    statusEl.textContent = '';
+    contentEl.innerHTML = '';
+
+    try {
+        const formData = new FormData();
+        formData.append('topic', topic);
+
+        const resp = await fetch('/api/research', { method: 'POST', body: formData });
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                try {
+                    const data = JSON.parse(line.slice(6));
+                    if (data.msg) statusEl.textContent = data.msg;
+                    if (data.token) {
+                        contentEl.innerHTML = marked.parse((contentEl.textContent || '') + data.token);
                     }
-                    try {
-                        var r = hljs.highlightAuto(text);
-                        if (r.language) {
-                            return '<pre><code class="hljs">' + r.value + '</code></pre>';
-                        }
-                    } catch (e) { /* fallthrough */ }
-                    return '<pre><code>' + (escaped ? text : escapeHtml(text)) + '</code></pre>';
-                };
-                marked.use({ renderer: renderer });
-                return true;
+                } catch(e) {}
             }
-            if (doInit()) return;
-            // 动态 CDN 加载中，轮询等待（最多 3 秒）
-            var attempts = 0;
-            var timer = setInterval(function() {
-                if (doInit()) { clearInterval(timer); return; }
-                if (++attempts >= 30) {
-                    clearInterval(timer);
-                    document.body.classList.add('no-markdown');
-                    console.warn('Markdown/CDN 加载超时，将显示原始文本');
-                }
-            }, 100);
-        })();
-
-        // ── 全局状态 ──────────────────────────────────
-        let qaFiles = [];
-        let codeFile = null;
-        // 保存最新一次研究结果，便于复制/下载
-        let lastResult = { report: '', summary: '', type: '' };
-
-        // ── 标签页切换 ──────────────────────────────
-        function switchTab(name) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            document.querySelector(`.tab-btn[data-tab="${name}"]`).classList.add('active');
-            document.getElementById(`tab-${name}`).classList.add('active');
         }
-        // 绑定 tab 点击事件
-        document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
-            btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-        });
+    } catch (err) {
+        contentEl.innerHTML = '<p style="color: var(--danger);">Request failed: ' + err.message + '</p>';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '🚀 Start Research';
+    }
+}
 
-        // ── Toast 提示 ───────────────────────────────
-        function toast(msg, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const el = document.createElement('div');
-            el.className = `toast ${type}`;
-            el.textContent = msg;
-            container.appendChild(el);
-            setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, 3000);
+// ===================== Code Analysis =====================
+
+let codeFile = null;
+
+function handleCodeFile(input) {
+    if (input.files.length > 0) {
+        codeFile = input.files[0];
+        renderCodeFileList(input.files);
+    }
+}
+
+function renderCodeFileList(files) {
+    const listEl = document.getElementById('code-file-list');
+    listEl.innerHTML = '';
+    Array.from(files).forEach((f, i) => {
+        const div = document.createElement('div');
+        div.className = 'file-item';
+        div.innerHTML = `<span>📄 ${f.name} (${formatSize(f.size)})</span>
+                         <button class="remove-file" onclick="removeCodeFile(${i})">✕</button>`;
+        listEl.appendChild(div);
+    });
+}
+
+function removeCodeFile(i) {
+    // Clear file selection
+    document.getElementById('code-file-input').value = '';
+    codeFile = null;
+    document.getElementById('code-file-list').innerHTML = '';
+}
+
+// Drag & drop for code upload
+const codeUpload = document.getElementById('code-upload-area');
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+    codeUpload.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); });
+});
+['dragenter', 'dragover'].forEach(evt => {
+    codeUpload.addEventListener(evt, () => codeUpload.classList.add('dragover'));
+});
+['dragleave', 'drop'].forEach(evt => {
+    codeUpload.addEventListener(evt, () => codeUpload.classList.remove('dragover'));
+});
+codeUpload.addEventListener('drop', e => {
+    if (e.dataTransfer.files.length > 0) {
+        codeFile = e.dataTransfer.files[0];
+        renderCodeFileList(e.dataTransfer.files);
+    }
+});
+
+async function startCodeAnalysis() {
+    const codeText = document.getElementById('code-content').value.trim();
+    const intent = document.getElementById('code-intent').value.trim();
+
+    if (!codeText && !codeFile) return alert('Please paste code or upload a file');
+
+    const btn = document.getElementById('btn-code');
+    const output = document.getElementById('output-code');
+    const statusEl = document.getElementById('status-code');
+    const contentEl = document.getElementById('content-code');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
+    output.classList.add('active');
+    statusEl.textContent = '';
+    contentEl.innerHTML = '';
+
+    try {
+        const formData = new FormData();
+        if (codeFile) {
+            formData.append('file', codeFile);
+        } else {
+            formData.append('code', codeText);
         }
+        formData.append('intent', intent || 'Please provide a comprehensive code analysis');
 
-        // ── 文件拖拽 ─────────────────────────────────
-        function setupDragDrop(areaId) {
-            const area = document.getElementById(areaId);
-            if (!area) return;
-            area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('drag-over'); });
-            area.addEventListener('dragleave', () => area.classList.remove('drag-over'));
-            area.addEventListener('drop', e => {
-                e.preventDefault();
-                area.classList.remove('drag-over');
-                if (areaId === 'code-upload-area' && e.dataTransfer.files.length > 0) {
-                    handleCodeFile(e.dataTransfer.files[0]);
-                } else if (areaId === 'qa-upload-area') {
-                    qaFiles = [...qaFiles, ...e.dataTransfer.files];
-                    renderQaFileList();
-                }
-            });
-        }
+        const url = codeFile ? '/api/analyze-code-file' : '/api/analyze-code';
+        const resp = await fetch(url, { method: 'POST', body: formData });
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let rawText = '';
 
-        setupDragDrop('code-upload-area');
-        setupDragDrop('qa-upload-area');
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
 
-        function handleCodeFile(file) {
-            codeFile = file;
-            const reader = new FileReader();
-            reader.onload = () => { document.getElementById('code-input').value = reader.result; };
-            reader.readAsText(file);
-            toast(t('toast.fileLoaded', { name: file.name }), 'success');
-        }
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
 
-        function handleCodeFileSelect(e) {
-            if (e.target.files.length > 0) handleCodeFile(e.target.files[0]);
-        }
-
-        function handleQaFileSelect(e) {
-            qaFiles = [...qaFiles, ...e.target.files];
-            renderQaFileList();
-        }
-
-        function renderQaFileList() {
-            const list = document.getElementById('qa-file-list');
-            list.innerHTML = qaFiles.map((f, i) =>
-                `<span class="file-tag">📄 ${f.name} <span class="remove" onclick="removeQaFile(${i})">×</span></span>`
-            ).join('');
-        }
-
-        function removeQaFile(i) {
-            qaFiles.splice(i, 1);
-            renderQaFileList();
-        }
-
-        // ── 结果重置 ────────────────────────────────
-        function resetResult(id) {
-            const el = document.getElementById(id);
-            const icons = { 'research-result': '🔬', 'code-result': '💻', 'qa-result': '📚' };
-            const msgs = {
-                'research-result': 'research.empty',
-                'code-result': 'code.empty',
-                'qa-result': 'qa.empty'
-            };
-            el.innerHTML = `<div class="empty-state"><div class="icon">${icons[id]}</div><div data-i18n="${msgs[id]}">${t(msgs[id])}</div></div>`;
-            lastResult = { report: '', summary: '', type: '' };
-            // Re-apply i18n to the newly created element
-            const i18nEl = el.querySelector('[data-i18n]');
-            if (i18nEl) i18nEl.textContent = t(i18nEl.dataset.i18n);
-        }
-
-        // ── 流式 SSE 读取 ───────────────────────────
-        async function streamFetch(url, body, resultId) {
-            const resultEl = document.getElementById(resultId);
-            const btnIds = { 'research-result': 'btn-research', 'code-result': 'btn-code', 'qa-result': 'btn-qa' };
-            const btn = document.getElementById(btnIds[resultId]);
-            if (btn) btn.disabled = true;
-
-            resultEl.innerHTML = `<div class="phase-msg"><span class="loading-spinner"></span> ${t('status.connecting')}</div>`;
-
-            // 独立的累加器，避免 reporting 和 summarizing 阶段内容串扰
-            let reportAccumulator = '';
-            let summaryAccumulator = '';
-            let analyzingAccumulator = '';
-            let reportSection = null;
-            let summarySection = null;
-            let contentDiv = null;
-
-            try {
-                const controller = new AbortController();
-                const timeout = setTimeout(() => controller.abort(), 300000); // 5 分钟超时
-
-                const resp = await fetch(url, {
-                    method: 'POST',
-                    body,
-                    signal: controller.signal,
-                });
-                clearTimeout(timeout);
-                if (!resp.ok) {
-                    const errText = await resp.text();
-                    throw new Error(`HTTP ${resp.status}: ${errText}`);
-                }
-                const reader = resp.body.getReader();
-                const decoder = new TextDecoder();
-                let buffer = '';
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop() || '';
-
-                    for (const line of lines) {
-                        if (!line.startsWith('data: ')) continue;
-                        try {
-                            const data = JSON.parse(line.slice(6));
-                            const phase = data.phase;
-                            const msg = data.msg || '';
-                            const token = data.token || '';
-
-                            if (phase === 'planning') {
-                                resultEl.innerHTML = `<div class="phase-msg">${data.plan ? t('status.planDone') : msg}</div>`;
-                                if (data.plan) {
-                                    const planDiv = document.createElement('div');
-                                    planDiv.className = 'content';
-                                    planDiv.innerHTML = `<h3>${t('result.researchPlan')}</h3><pre>` + escapeHtml(data.plan) + '</pre>';
-                                    resultEl.appendChild(planDiv);
-                                }
-                                lastResult.type = 'research';
-
-                            } else if (phase === 'searching') {
-                                let searchDiv = resultEl.querySelector('.search-status');
-                                if (!searchDiv) {
-                                    searchDiv = document.createElement('div');
-                                    searchDiv.className = 'phase-msg search-status';
-                                    resultEl.appendChild(searchDiv);
-                                }
-                                searchDiv.textContent = msg;
-                                if (data.search_data) {
-                                    const sDiv = document.createElement('div');
-                                    sDiv.className = 'content';
-                                    sDiv.innerHTML = `<h3>${t('result.searchResults')}</h3><pre style="max-height:300px;overflow-y:auto">` + escapeHtml(data.search_data.substring(0, 2000)) + '</pre>';
-                                    resultEl.appendChild(sDiv);
-                                }
-
-                            } else if (phase === 'reporting') {
-                                if (!reportSection) {
-                                    reportSection = document.createElement('div');
-                                    reportSection.className = 'content';
-                                    reportSection.innerHTML = `<hr><h2>${t('result.report')}</h2><div class="report-body"></div>`;
-                                    resultEl.appendChild(reportSection);
-                                }
-                                reportAccumulator += token;
-                                lastResult.report = reportAccumulator;
-                                const bodyEl = reportSection.querySelector('.report-body');
-                                if (bodyEl) {
-                                    bodyEl.innerHTML = renderMd(reportAccumulator);
-                                }
-
-                            } else if (phase === 'summarizing') {
-                                if (!summarySection) {
-                                    summarySection = document.createElement('div');
-                                    summarySection.className = 'content';
-                                    summarySection.innerHTML = `<hr><h3>${t('result.summary')}</h3><div class="summary-body"></div>`;
-                                    resultEl.appendChild(summarySection);
-                                }
-                                summaryAccumulator += token;
-                                lastResult.summary = summaryAccumulator;
-                                const bodyEl = summarySection.querySelector('.summary-body');
-                                if (bodyEl) {
-                                    bodyEl.innerHTML = renderMd(summaryAccumulator);
-                                }
-
-                            } else if (phase === 'analyzing') {
-                                if (!contentDiv) {
-                                    // 清除空状态
-                                    resultEl.innerHTML = '<div class="phase-msg">' + msg + '</div>';
-                                    contentDiv = document.createElement('div');
-                                    contentDiv.className = 'content';
-                                    resultEl.appendChild(contentDiv);
-                                } else {
-                                    // 更新状态消息
-                                    const phaseEl = resultEl.querySelector('.phase-msg');
-                                    if (phaseEl) phaseEl.textContent = msg;
-                                }
-                                analyzingAccumulator += token;
-                                lastResult.report = analyzingAccumulator;
-                                lastResult.type = resultId === 'code-result' ? 'code' : 'qa';
-                                contentDiv.innerHTML = renderMd(analyzingAccumulator);
-
-                            } else if (phase === 'done') {
-                                const doneEl = document.createElement('div');
-                                doneEl.className = 'phase-msg';
-                                doneEl.style.color = 'var(--success)';
-                                doneEl.textContent = msg + ' ';
-                                // Add action buttons / 添加操作按钮
-                                const copyBtn = document.createElement('button');
-                                copyBtn.className = 'btn btn-copy';
-                                copyBtn.textContent = t('result.copy');
-                                copyBtn.onclick = () => copyResult(resultId);
-                                doneEl.appendChild(copyBtn);
-                                const downloadBtn = document.createElement('button');
-                                downloadBtn.className = 'btn btn-download';
-                                downloadBtn.style.marginLeft = '8px';
-                                downloadBtn.textContent = t('result.download');
-                                downloadBtn.onclick = () => downloadResult(resultId);
-                                doneEl.appendChild(downloadBtn);
-                                resultEl.insertBefore(doneEl, resultEl.firstChild);
-
-                            } else if (phase === 'error') {
-                                resultEl.innerHTML = '<div class="phase-msg" style="color:var(--danger)">❌ ' + escapeHtml(msg) + '</div>';
-                                toast(msg, 'error');
-                            }
-                        } catch (e) {
-                            console.error('SSE 解析错误:', e);
-                        }
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                try {
+                    const data = JSON.parse(line.slice(6));
+                    if (data.msg) statusEl.textContent = data.msg;
+                    if (data.token) {
+                        rawText += data.token;
+                        contentEl.innerHTML = marked.parse(rawText);
                     }
-                }
-            } catch (e) {
-                const msg = e.name === 'AbortError'
-                    ? t('error.timeout')
-                    : t('error.requestFail', { msg: e.message });
-                resultEl.innerHTML = '<div class="phase-msg" style="color:var(--danger)">❌ ' + escapeHtml(msg) + '</div>';
-                toast(msg, 'error');
-            } finally {
-                if (btn) btn.disabled = false;
+                } catch(e) {}
             }
         }
+    } catch (err) {
+        contentEl.innerHTML = '<p style="color: var(--danger);">Request failed: ' + err.message + '</p>';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '🔬 Start Analysis';
+    }
+}
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+// ===================== Document Q&A =====================
 
-        // marked.js 安全包装：CDN 未加载时降级为原始文本
-        function renderMd(text) {
-            if (typeof marked !== 'undefined') {
-                return marked.parse(text);
+let qaFiles = [];
+
+function handleQAFiles(input) {
+    qaFiles = Array.from(input.files);
+    renderQAFileList();
+}
+
+function renderQAFileList() {
+    const listEl = document.getElementById('qa-file-list');
+    listEl.innerHTML = '';
+    qaFiles.forEach((f, i) => {
+        const div = document.createElement('div');
+        div.className = 'file-item';
+        div.innerHTML = `<span>📄 ${f.name} (${formatSize(f.size)})</span>
+                         <button class="remove-file" onclick="removeQAFile(${i})">✕</button>`;
+        listEl.appendChild(div);
+    });
+}
+
+function removeQAFile(i) {
+    qaFiles.splice(i, 1);
+    renderQAFileList();
+}
+
+// Drag & drop for QA upload
+const qaUpload = document.getElementById('qa-upload-area');
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+    qaUpload.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); });
+});
+['dragenter', 'dragover'].forEach(evt => {
+    qaUpload.addEventListener(evt, () => qaUpload.classList.add('dragover'));
+});
+['dragleave', 'drop'].forEach(evt => {
+    qaUpload.addEventListener(evt, () => qaUpload.classList.remove('dragover'));
+});
+qaUpload.addEventListener('drop', e => {
+    if (e.dataTransfer.files.length > 0) {
+        qaFiles = Array.from(e.dataTransfer.files);
+        renderQAFileList();
+    }
+});
+
+async function startQA() {
+    const question = document.getElementById('qa-question').value.trim();
+    if (!question) return alert('Please enter your question');
+    if (qaFiles.length === 0) return alert('Please upload at least one document');
+
+    const btn = document.getElementById('btn-qa');
+    const output = document.getElementById('output-qa');
+    const statusEl = document.getElementById('status-qa');
+    const contentEl = document.getElementById('content-qa');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
+    output.classList.add('active');
+    statusEl.textContent = '';
+    contentEl.innerHTML = '';
+
+    try {
+        const formData = new FormData();
+        formData.append('question', question);
+        qaFiles.forEach(f => formData.append('files', f));
+
+        const resp = await fetch('/api/qa-documents', { method: 'POST', body: formData });
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let rawText = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                try {
+                    const data = JSON.parse(line.slice(6));
+                    if (data.msg) statusEl.textContent = data.msg;
+                    if (data.token) {
+                        rawText += data.token;
+                        contentEl.innerHTML = marked.parse(rawText);
+                    }
+                } catch(e) {}
             }
-            return '<pre style="white-space:pre-wrap">' + escapeHtml(text) + '</pre>';
         }
+    } catch (err) {
+        contentEl.innerHTML = '<p style="color: var(--danger);">Request failed: ' + err.message + '</p>';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '🤔 Ask';
+    }
+}
 
-        // ── 复制结果 ────────────────────────────────
-        function copyResult(resultId) {
-            const resultEl = document.getElementById(resultId);
-            const contentEl = resultEl.querySelector('.content');
-            const text = contentEl ? contentEl.textContent.trim() : resultEl.textContent.trim();
-            if (!text || text === 'undefined') { toast(t('toast.noContent'), 'error'); return; }
+// ===================== Helpers =====================
 
-            navigator.clipboard.writeText(text).then(() => {
-                toast(t('toast.copied'), 'success');
-                // Update button state / 更新按钮状态
-                resultEl.querySelectorAll('.btn-copy').forEach(b => {
-                    b.textContent = t('result.copied');
-                    b.classList.add('copied');
-                    setTimeout(() => { b.textContent = t('result.copy'); b.classList.remove('copied'); }, 2000);
-                });
-            }).catch(() => toast(t('toast.copyFail'), 'error'));
-        }
+function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+</script>
 
-        // ── 下载结果 ────────────────────────────────
-        function downloadResult(resultId) {
-            const resultEl = document.getElementById(resultId);
-            const contentEl = resultEl.querySelector('.content');
-            const text = contentEl ? contentEl.textContent.trim() : resultEl.textContent.trim();
-            if (!text || text === 'undefined') { toast(t('toast.noDownload'), 'error'); return; }
-
-            const now = new Date();
-            const dateStr = now.toISOString().slice(0, 10);
-            const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '-');
-            const prefix = resultId === 'research-result' ? t('download.research') :
-                           resultId === 'code-result' ? t('download.code') : t('download.qa');
-            const filename = `${prefix}_${dateStr}_${timeStr}.md`;
-
-            const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
-            toast(t('toast.downloaded', { filename }), 'success');
-        }
-
-        // ── 功能一：深度研究 ─────────────────────────
-        function startResearch() {
-            const topic = document.getElementById('research-topic').value.trim();
-            if (!topic) { toast(t('error.noTopic'), 'error'); return; }
-            const formData = new FormData();
-            formData.append('topic', topic);
-            streamFetch('/api/research', formData, 'research-result');
-        }
-
-        // ── 功能二：代码分析 ─────────────────────────
-        function startCodeAnalysis() {
-            const code = document.getElementById('code-input').value.trim();
-            const intent = document.getElementById('code-intent').value.trim();
-
-            if (!code && !codeFile) { toast(t('error.noCode'), 'error'); return; }
-
-            if (codeFile) {
-                const formData = new FormData();
-                formData.append('file', codeFile);
-                formData.append('intent', intent || 'Provide a comprehensive analysis of this code / 请对这段代码进行全面分析');
-                streamFetch('/api/analyze-code-file', formData, 'code-result');
-                codeFile = null;
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('code', code);
-            formData.append('intent', intent || 'Provide a comprehensive analysis of this code / 请对这段代码进行全面分析');
-            streamFetch('/api/analyze-code', formData, 'code-result');
-        }
-
-        // ── 功能三：文档问答 ─────────────────────────
-        function startDocQA() {
-            const question = document.getElementById('qa-question').value.trim();
-            if (!question) { toast(t('error.noQuestion'), 'error'); return; }
-            if (qaFiles.length === 0) { toast(t('error.noFiles'), 'error'); return; }
-
-            const formData = new FormData();
-            formData.append('question', question);
-            qaFiles.forEach(f => formData.append('files', f));
-            streamFetch('/api/qa-documents', formData, 'qa-result');
-        }
-
-        // ── 键盘快捷键 ──────────────────────────────
-        document.addEventListener('keydown', e => {
-            if (e.ctrlKey && e.key === 'Enter') {
-                const activeTab = document.querySelector('.tab-panel.active');
-                if (!activeTab) return;
-                if (activeTab.id === 'tab-research') startResearch();
-                else if (activeTab.id === 'tab-code') startCodeAnalysis();
-                else if (activeTab.id === 'tab-qa') startDocQA();
-            }
-        });
-    </script>
 </body>
 </html>
