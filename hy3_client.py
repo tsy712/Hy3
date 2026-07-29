@@ -1,21 +1,19 @@
 """
-Hy3 API 客户端 — 基于 OpenAI 兼容接口调用腾讯混元 Hy3 大模型。
+Hy3 MCP Server — Hy3 API 客户端
 
-支持：
-- 通用对话 (chat)
-- 深度研究 (deep_research) — 搜索 + AI 分析
-- 代码审查 (code_review)
-- 文档问答 (doc_qa)
+基于 OpenAI 兼容接口调用腾讯混元 Hy3 大模型。
 """
 
 import os
-from typing import Optional, Generator
+import asyncio
+from typing import Optional
 
-from openai import OpenAI
+import httpx
+from openai import AsyncOpenAI
 
 
-class Hy3Client:
-    """腾讯混元 Hy3 大模型 API 客户端（OpenAI 兼容接口）"""
+class Hy3MCPClient:
+    """Hy3 API 异步客户端（用于 MCP Server）"""
 
     def __init__(
         self,
@@ -31,150 +29,164 @@ class Hy3Client:
 
         if not self.api_key:
             raise ValueError(
-                "HY3_API_KEY 未设置。请在 .env 文件中配置或设置环境变量 HY3_API_KEY。"
+                "HY3_API_KEY 未设置。请设置环境变量或在 .env 文件中配置。"
             )
 
-        self.client = OpenAI(
+        self.client = AsyncOpenAI(
             api_key=self.api_key,
             base_url=self.base_url,
         )
 
-    def chat(
-        self,
-        messages: list[dict],
-        stream: bool = False,
-        temperature: float = 0.7,
-        max_tokens: int = 4096,
-    ) -> dict | Generator:
+    async def chat(self, message: str, temperature: float = 0.7) -> str:
         """通用对话"""
-        response = self.client.chat.completions.create(
+        response = await self.client.chat.completions.create(
             model=self.model,
-            messages=messages,
-            stream=stream,
+            messages=[{"role": "user", "content": message}],
             temperature=temperature,
-            max_tokens=max_tokens,
-        )
-        return response
-
-    def chat_sync(
-        self,
-        messages: list[dict],
-        temperature: float = 0.7,
-        max_tokens: int = 4096,
-    ) -> str:
-        """同步对话，返回文本内容"""
-        response = self.chat(
-            messages=messages,
-            stream=False,
-            temperature=temperature,
-            max_tokens=max_tokens,
+            max_tokens=4096,
         )
         return response.choices[0].message.content
 
-    def deep_research(
+    async def deep_research(
         self,
         topic: str,
         search_results: list[str],
-        stream: bool = False,
     ) -> str:
-        """
-        深度研究：基于搜索结果进行 AI 分析，生成结构化研究报告。
-        
-        Args:
-            topic: 研究主题
-            search_results: DuckDuckGo 搜索结果摘要列表
-            stream: 是否流式输出
-        """
-        context = "\n".join(
-            f"[来源 {i+1}] {r}" for i, r in enumerate(search_results)
-        )
+        """深度研究"""
+        context = "\n".join(search_results)
 
         system_prompt = (
-            "你是一个专业的研究助手，基于提供的搜索资料生成深度研究报告。\n"
-            "报告结构：\n"
-            "1. **概述** - 主题背景与核心发现\n"
-            "2. **关键信息** - 分点提取重要事实和数据\n"
-            "3. **多角度分析** - 从不同视角解读信息\n"
-            "4. **结论与建议** - 总结 + 下一步研究方向\n"
-            "要求：引用来源标注编号，保持客观中立。"
+            "你是一个专业的研究助手。基于提供的搜索资料生成深度研究报告。\n"
+            "格式：\n"
+            "## 概述\n## 关键发现\n## 多角度分析\n## 结论与建议\n"
+            "请引用来源编号，保持客观中立。"
         )
 
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {
-                "role": "user",
-                "content": f"研究主题：{topic}\n\n参考资料：\n{context}",
-            },
-        ]
+        response = await self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"主题：{topic}\n\n资料：\n{context}"},
+            ],
+            temperature=0.5,
+            max_tokens=8192,
+        )
+        return response.choices[0].message.content
 
-        return self.chat_sync(messages, temperature=0.5, max_tokens=8192)
-
-    def code_review(
-        self,
-        code: str,
-        language: str = "",
-    ) -> str:
-        """
-        代码审查：多维度分析代码。
-
-        Args:
-            code: 代码内容
-            language: 编程语言（自动检测或手动指定）
-        """
+    async def code_review(self, code: str, language: str = "") -> str:
+        """代码审查"""
+        lang_hint = f"（语言：{language}）" if language else ""
         system_prompt = (
-            "你是一个资深代码审查专家。请从以下维度分析代码：\n"
-            "1. **Bug 检测** - 逻辑错误、边界情况\n"
-            "2. **性能分析** - 时间复杂度、空间使用、可优化点\n"
-            "3. **安全审计** - SQL 注入、XSS、凭据泄露等\n"
-            "4. **代码质量** - 命名规范、可读性、DRY 原则\n"
-            "5. **改进建议** - 提供具体的优化代码\n"
-            "点评风格：建设性、具体、给出修改方案。"
+            "你是一个资深代码审查专家。请从以下维度分析：\n"
+            "1. Bug 检测\n2. 性能分析\n3. 安全审计\n4. 代码质量\n5. 改进建议\n"
+            "要求：具体、建设性。"
         )
 
-        lang_hint = f"（编程语言：{language}）" if language else ""
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {
-                "role": "user",
-                "content": f"请审查以下代码{lang_hint}：\n\n```\n{code}\n```",
-            },
-        ]
+        response = await self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"审查以下代码{lang_hint}：\n\n```\n{code}\n```"},
+            ],
+            temperature=0.3,
+            max_tokens=8192,
+        )
+        return response.choices[0].message.content
 
-        return self.chat_sync(messages, temperature=0.3, max_tokens=8192)
-
-    def doc_qa(
+    async def doc_qa(
         self,
         question: str,
         doc_content: str,
         doc_name: str = "",
     ) -> str:
-        """
-        文档问答：基于文档内容精准回答用户问题。
-
-        Args:
-            question: 用户问题
-            doc_content: 文档文本内容
-            doc_name: 文档名称
-        """
-        name_hint = f""{doc_name}"" if doc_name else "上传的文档"
+        """文档问答"""
+        name_hint = f'"{doc_name}"' if doc_name else "上传的文档"
         system_prompt = (
-            "你是一个文档分析助手。基于提供的文档内容回答用户问题。\n"
-            "要求：\n"
-            "- 如果答案在文档中，请引用原文段落\n"
-            "- 如果文档不包含相关信息，请诚实说明\n"
-            "- 回答简洁、准确，避免不必要的延伸"
+            "你是一个文档分析助手。基于提供的文档内容回答问题。\n"
+            "如果答案在文档中，请引用原文。如果不在，请诚实说明。"
         )
 
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {
-                "role": "user",
-                "content": (
-                    f"文档：{name_hint}\n\n"
-                    f"文档内容：\n{doc_content}\n\n"
-                    f"问题：{question}"
-                ),
-            },
-        ]
+        response = await self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {
+                    "role": "user",
+                    "content": (
+                        f"文档：{name_hint}\n"
+                        f"内容：\n{doc_content}\n\n"
+                        f"问题：{question}"
+                    ),
+                },
+            ],
+            temperature=0.3,
+            max_tokens=4096,
+        )
+        return response.choices[0].message.content
 
-        return self.chat_sync(messages, temperature=0.3, max_tokens=4096)
+
+async def search_duckduckgo(query: str, max_results: int = 8) -> list[dict]:
+    """
+    DuckDuckGo 搜索（异步）
+    
+    双层降级：Instant Answer API → HTML 搜索结果页
+    """
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/120.0.0.0 Safari/537.36"
+        )
+    }
+
+    results = []
+
+    async with httpx.AsyncClient(timeout=15.0, headers=headers) as client:
+        # 第一层：Instant Answer API
+        try:
+            api_url = "https://api.duckduckgo.com/"
+            params = {"q": query, "format": "json", "no_html": 1, "skip_disambig": 1}
+            resp = await client.get(api_url, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+
+            if data.get("AbstractText"):
+                results.append({
+                    "title": data.get("Heading", query),
+                    "snippet": data["AbstractText"],
+                    "url": data.get("AbstractURL", ""),
+                })
+
+            for topic in data.get("RelatedTopics", []):
+                if topic.get("Text") and not topic.get("Topics"):
+                    results.append({
+                        "title": topic.get("FirstURL", ""),
+                        "snippet": topic.get("Text", ""),
+                        "url": topic.get("FirstURL", ""),
+                    })
+        except Exception:
+            pass
+
+        # 第二层：HTML 搜索
+        if len(results) < max_results:
+            try:
+                html_url = f"https://html.duckduckgo.com/html/?q={query}"
+                resp = await client.get(html_url)
+                resp.raise_for_status()
+
+                from bs4 import BeautifulSoup
+                soup = BeautifulSoup(resp.text, "lxml")
+
+                for item in soup.select(".result")[: max_results - len(results)]:
+                    title_el = item.select_one(".result__title a")
+                    snippet_el = item.select_one(".result__snippet")
+                    if title_el and snippet_el:
+                        results.append({
+                            "title": title_el.get_text(strip=True),
+                            "snippet": snippet_el.get_text(strip=True),
+                            "url": "",
+                        })
+            except Exception:
+                pass
+
+    return results[:max_results]
