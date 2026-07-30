@@ -14,7 +14,7 @@ services:
     volumes:
       - ./uploads:/app/uploads
     restart: unless-stopped
-    # 不需要 GPU，以下配置已注释
+    # No GPU required — the following config is commented out / 不需要 GPU，以下配置已注释
     # deploy:
     #   resources:
     #     reservations:
