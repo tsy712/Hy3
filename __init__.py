@@ -1,6 +1,13 @@
-"""
-Hy3 MCP Server — 基于 MCP 协议封装腾讯混元 Hy3 大模型能力
+from typing import List, Optional
 
-版本: 1.0.0
-"""
-__version__ = "1.0.0"
+__version__ = "25.0.1"
+
+
+def main(args: Optional[List[str]] = None) -> int:
+    """This is an internal API only meant for use by pip's own console scripts.
+
+    For additional details, see https://github.com/pypa/pip/issues/7498.
+    """
+    from pip._internal.utils.entrypoints import _wrapper
+
+    return _wrapper(args)

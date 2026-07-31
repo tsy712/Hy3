@@ -1,766 +1,703 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hy3 Research Assistant — 智能研究助手</title>
-    <style>
-        :root {
-            --bg: #0f1117;
-            --bg-card: #1a1d27;
-            --bg-input: #222533;
-            --border: #2a2d3a;
-            --text: #e1e4ed;
-            --text-muted: #8b8fa3;
-            --accent: #6c5ce7;
-            --accent-hover: #7d6ff0;
-            --accent-dim: #6c5ce720;
-            --success: #00d68f;
-            --danger: #ff6b6b;
-            --radius: 12px;
-            --radius-sm: 8px;
-            --shadow: 0 4px 24px rgba(0,0,0,0.3);
-            --transition: 0.2s ease;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hy3 Research Assistant — 腾讯混元智能研究助手</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --card: #1a1a2e;
+    --border: #2a2a3e;
+    --accent: #6c5ce7;
+    --accent-glow: rgba(108,92,231,.4);
+    --text: #e0e0f0;
+    --text-dim: #8888aa;
+    --green: #00d2a0;
+    --red: #ff6b6b;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            line-height: 1.6;
-        }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
 
-        /* Layout */
-        .app-container {
-            display: flex;
-            min-height: 100vh;
-        }
+  /* Header */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .header-logo {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), #a855f7);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .header h1 { font-size: 18px; font-weight: 600; }
+  .header .badge {
+    font-size: 12px;
+    background: var(--card);
+    color: var(--accent);
+    padding: 3px 10px;
+    border-radius: 50px;
+    margin-left: auto;
+  }
 
-        /* Sidebar */
-        .sidebar {
-            width: 260px;
-            background: var(--bg-card);
-            border-right: 1px solid var(--border);
-            padding: 24px 16px;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
+  /* Layout */
+  .main {
+    flex: 1;
+    display: flex;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 24px;
+    gap: 24px;
+  }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 32px;
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text);
-        }
+  /* Sidebar */
+  .sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .sidebar-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all .2s;
+    text-align: left;
+  }
+  .sidebar-btn:hover { background: var(--card); color: var(--text); }
+  .sidebar-btn.active {
+    background: var(--card);
+    border-color: var(--accent);
+    color: var(--text);
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+  .sidebar-btn .icon { font-size: 18px; width: 24px; text-align: center; }
 
-        .logo-icon {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, var(--accent), #a78bfa);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
+  /* Content */
+  .content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
 
-        .nav-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
+  /* Chat Container */
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .chat-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    gap: 12px;
+  }
+  .chat-empty .emoji { font-size: 48px; }
+  .chat-empty h2 { color: var(--text); font-size: 22px; }
+  .chat-empty p { font-size: 14px; max-width: 400px; text-align: center; line-height: 1.6; }
 
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: var(--transition);
-            color: var(--text-muted);
-            font-size: 14px;
-            border: none;
-            background: none;
-            width: 100%;
-            text-align: left;
-        }
+  /* Message bubble */
+  .message { display: flex; gap: 12px; animation: fadeUp .3s ease; }
+  @keyframes fadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+  .message.user { flex-direction: row-reverse; }
+  .message-avatar {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .message.user .message-avatar { background: var(--accent); }
+  .message.assistant .message-avatar { background: linear-gradient(135deg, #00d2a0, #00a8a0); }
+  .message-bubble {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .message.user .message-bubble {
+    background: var(--accent);
+    color: #fff;
+    border-bottom-right-radius: 2px;
+  }
+  .message.assistant .message-bubble {
+    background: var(--card);
+    color: var(--text);
+    border-bottom-left-radius: 2px;
+    border: 1px solid var(--border);
+  }
 
-        .nav-item:hover { background: var(--accent-dim); color: var(--text); }
-        .nav-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+  /* Typing indicator */
+  .typing { display: flex; gap: 4px; padding: 4px 0; }
+  .typing span {
+    width: 6px; height: 6px;
+    background: var(--text-dim);
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+  }
+  .typing span:nth-child(1) { animation-delay: -.32s; }
+  .typing span:nth-child(2) { animation-delay: -.16s; }
+  @keyframes bounce {
+    0%,80%,100% { transform: scale(0); }
+    40% { transform: scale(1); }
+  }
+  .streaming-cursor::after {
+    content: '▊';
+    animation: blink 1s step-end infinite;
+    color: var(--accent);
+  }
+  @keyframes blink { 50% { opacity: 0; } }
 
-        .nav-icon { font-size: 18px; width: 24px; text-align: center; }
+  /* Input */
+  .chat-input-area {
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+  }
+  .chat-input-area textarea {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 12px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: none;
+    min-height: 44px;
+    max-height: 160px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .chat-input-area textarea:focus { border-color: var(--accent); }
+  .btn-send {
+    width: 44px; height: 44px;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+  .btn-send:hover { box-shadow: 0 0 16px var(--accent-glow); }
+  .btn-send:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
 
-        .sidebar-footer {
-            margin-top: auto;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-            font-size: 12px;
-            color: var(--text-muted);
-        }
+  /* Panels */
+  .panel { display: none; flex-direction: column; gap: 16px; }
+  .panel.active { display: flex; }
+  .panel-title {
+    font-size: 20px; font-weight: 600; color: var(--text);
+  }
+  .panel-desc {
+    font-size: 14px; color: var(--text-dim); line-height: 1.6;
+  }
 
-        /* Main */
-        .main-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
+  /* Code Review */
+  .code-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 16px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    resize: vertical;
+    min-height: 200px;
+    outline: none;
+  }
+  .code-input:focus { border-color: var(--accent); }
+  .btn {
+    padding: 10px 20px;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn:hover { box-shadow: 0 0 16px var(--accent-glow); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .result-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    white-space: pre-wrap;
+    font-size: 14px;
+    line-height: 1.7;
+    max-height: 500px;
+    overflow-y: auto;
+  }
 
-        .header {
-            padding: 20px 32px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+  /* File Upload */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    color: var(--text-dim);
+  }
+  .upload-zone:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    background: var(--card);
+  }
+  .upload-zone input { display: none; }
 
-        .header-title { font-size: 20px; font-weight: 600; }
-        .header-status {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            color: var(--success);
-        }
-        .status-dot {
-            width: 8px; height: 8px;
-            background: var(--success);
-            border-radius: 50%;
-        }
-
-        /* Content panels */
-        .content-area {
-            flex: 1;
-            padding: 32px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .panel { display: none; flex-direction: column; flex: 1; }
-        .panel.active { display: flex; }
-
-        .panel-desc {
-            color: var(--text-muted);
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-
-        /* Input area */
-        .input-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 20px;
-            margin-bottom: 16px;
-        }
-
-        .input-row {
-            display: flex;
-            gap: 12px;
-            align-items: flex-end;
-        }
-
-        textarea, input[type="text"] {
-            flex: 1;
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 12px 16px;
-            color: var(--text);
-            font-size: 14px;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 48px;
-            transition: var(--transition);
-        }
-
-        textarea:focus, input[type="text"]:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-dim);
-        }
-
-        textarea { min-height: 80px; }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 10px 20px;
-            border-radius: var(--radius-sm);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            transition: var(--transition);
-            white-space: nowrap;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            color: white;
-        }
-        .btn-primary:hover { background: var(--accent-hover); }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-        }
-        .btn-outline:hover { border-color: var(--accent); color: var(--text); }
-
-        /* Result area */
-        .result-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px;
-            flex: 1;
-            overflow-y: auto;
-            display: none;
-        }
-        .result-card.visible { display: block; }
-
-        .result-card h3 {
-            font-size: 16px;
-            margin-bottom: 12px;
-            color: var(--accent);
-        }
-
-        .markdown-content {
-            font-size: 14px;
-            line-height: 1.8;
-        }
-        .markdown-content h2 { font-size: 18px; margin: 20px 0 10px; }
-        .markdown-content h3 { font-size: 16px; margin: 16px 0 8px; }
-        .markdown-content p { margin: 8px 0; }
-        .markdown-content ul, .markdown-content ol { padding-left: 20px; margin: 8px 0; }
-        .markdown-content li { margin: 4px 0; }
-        .markdown-content code {
-            background: var(--bg-input);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-        .markdown-content pre {
-            background: var(--bg-input);
-            padding: 16px;
-            border-radius: var(--radius-sm);
-            overflow-x: auto;
-            margin: 12px 0;
-        }
-        .markdown-content pre code { background: none; padding: 0; }
-
-        /* File upload */
-        .file-upload-area {
-            border: 2px dashed var(--border);
-            border-radius: var(--radius);
-            padding: 24px;
-            text-align: center;
-            transition: var(--transition);
-            cursor: pointer;
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-        .file-upload-area:hover { border-color: var(--accent); color: var(--accent); }
-        .file-upload-area.drag-over { border-color: var(--success); background: rgba(0,214,143,0.05); }
-
-        .file-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .file-tag {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            background: var(--accent-dim);
-            border-radius: 20px;
-            font-size: 12px;
-            color: var(--accent);
-        }
-
-        .file-tag .remove-file {
-            cursor: pointer;
-            font-weight: bold;
-            color: var(--danger);
-            margin-left: 4px;
-        }
-
-        /* Loading */
-        .loading {
-            display: none;
-            align-items: center;
-            gap: 10px;
-            padding: 16px 0;
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-        .loading.active { display: flex; }
-
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border);
-            border-top: 2px solid var(--accent);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Sources */
-        .sources-list {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-        }
-        .sources-list h4 {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-        .source-item {
-            padding: 8px 12px;
-            background: var(--bg-input);
-            border-radius: var(--radius-sm);
-            margin-bottom: 6px;
-            font-size: 12px;
-        }
-        .source-item .source-title { color: var(--accent); font-weight: 600; }
-        .source-item .source-snippet { color: var(--text-muted); margin-top: 4px; }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .content-area { padding: 16px; }
-            .input-row { flex-direction: column; }
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-
-        /* Empty state */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            color: var(--text-muted);
-            text-align: center;
-        }
-        .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
-        .empty-title { font-size: 18px; margin-bottom: 8px; }
-        .empty-desc { font-size: 14px; max-width: 400px; }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            padding: 12px 20px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            box-shadow: var(--shadow);
-            font-size: 14px;
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-            display: none;
-        }
-        .toast.show { display: block; }
-        .toast.error { border-color: var(--danger); color: var(--danger); }
-        @keyframes slideIn {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-    </style>
+  /* Responsive */
+  @media (max-width: 768px) {
+    .main { flex-direction: column; }
+    .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; }
+    .sidebar-btn { flex: 1; min-width: 100px; justify-content: center; font-size: 12px; }
+    .message-bubble { max-width: 90%; }
+  }
+</style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Sidebar -->
-        <nav class="sidebar">
-            <div class="logo">
-                <div class="logo-icon">H3</div>
-                Hy3 Research
-            </div>
-            <ul class="nav-list">
-                <li><button class="nav-item active" data-panel="research">
-                    <span class="nav-icon">🔬</span> 深度研究
-                </button></li>
-                <li><button class="nav-item" data-panel="code-review">
-                    <span class="nav-icon">💻</span> 代码分析
-                </button></li>
-                <li><button class="nav-item" data-panel="doc-qa">
-                    <span class="nav-icon">📄</span> 文档问答
-                </button></li>
-                <li><button class="nav-item" data-panel="chat">
-                    <span class="nav-icon">💬</span> 通用对话
-                </button></li>
-            </ul>
-            <div class="sidebar-footer">
-                Powered by 腾讯混元 Hy3<br>
-                v1.0.0
-            </div>
-        </nav>
 
-        <!-- Main Area -->
-        <div class="main-area">
-            <header class="header">
-                <h1 class="header-title" id="headerTitle">🔬 深度研究</h1>
-                <div class="header-status">
-                    <span class="status-dot"></span> API 就绪
-                </div>
-            </header>
+<header class="header">
+  <div class="header-logo">🔮</div>
+  <h1>Hy3 Research Assistant</h1>
+  <span class="badge">Tencent Hunyuan</span>
+</header>
 
-            <div class="content-area">
-                <!-- Panel: Deep Research -->
-                <div class="panel active" id="panel-research">
-                    <p class="panel-desc">输入研究主题，AI 将自动搜索并生成深度研究报告。</p>
-                    <div class="input-card">
-                        <div class="input-row">
-                            <input type="text" id="researchTopic"
-                                   placeholder="例如：量子计算的最新进展及其对 AI 的影响">
-                            <button class="btn btn-primary" onclick="startResearch()">
-                                🚀 开始研究
-                            </button>
-                        </div>
-                    </div>
-                    <div class="loading" id="researchLoading">
-                        <div class="spinner"></div> AI 正在搜索和分析中...
-                    </div>
-                    <div class="result-card" id="researchResult">
-                        <h3>📊 研究报告</h3>
-                        <div class="markdown-content" id="researchReport"></div>
-                        <div class="sources-list" id="researchSources"></div>
-                    </div>
-                </div>
+<div class="main">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <button class="sidebar-btn active" data-panel="chat">
+      <span class="icon">💬</span> 智能对话
+    </button>
+    <button class="sidebar-btn" data-panel="research">
+      <span class="icon">🔍</span> 深度研究
+    </button>
+    <button class="sidebar-btn" data-panel="agent">
+      <span class="icon">🤖</span> Agent 模式
+    </button>
+    <button class="sidebar-btn" data-panel="code-review">
+      <span class="icon">📝</span> 代码审查
+    </button>
+    <button class="sidebar-btn" data-panel="file-qa">
+      <span class="icon">📄</span> 文件问答
+    </button>
+  </nav>
 
-                <!-- Panel: Code Review -->
-                <div class="panel" id="panel-code-review">
-                    <p class="panel-desc">粘贴代码片段，AI 将从 Bug 检测、性能、安全、代码质量等维度进行审查。</p>
-                    <div class="input-card">
-                        <input type="text" id="codeLanguage"
-                               placeholder="编程语言（选填，自动检测）" style="margin-bottom: 8px;">
-                        <textarea id="codeInput"
-                                  placeholder="在此粘贴你的代码..."></textarea>
-                        <div style="margin-top: 12px; text-align: right;">
-                            <button class="btn btn-primary" onclick="startCodeReview()">
-                                📋 开始审查
-                            </button>
-                        </div>
-                    </div>
-                    <div class="loading" id="codeReviewLoading">
-                        <div class="spinner"></div> AI 正在审查代码...
-                    </div>
-                    <div class="result-card" id="codeReviewResult">
-                        <h3>📋 代码审查报告</h3>
-                        <div class="markdown-content" id="codeReviewReport"></div>
-                    </div>
-                </div>
-
-                <!-- Panel: Document Q&A -->
-                <div class="panel" id="panel-doc-qa">
-                    <p class="panel-desc">上传文档或粘贴文本，AI 基于文档内容精准回答你的问题。</p>
-                    <div class="input-card">
-                        <div class="file-upload-area" id="fileDropArea"
-                             onclick="document.getElementById('fileInput').click()">
-                            <div style="font-size: 32px; margin-bottom: 8px;">📁</div>
-                            <div>拖拽文件到此处，或点击上传</div>
-                            <div style="font-size:12px; margin-top: 4px;">支持 PDF / DOCX / TXT / MD / 代码文件</div>
-                            <input type="file" id="fileInput" style="display:none" multiple
-                                   accept=".pdf,.docx,.doc,.txt,.md,.py,.js,.ts,.java,.cpp,.c,.html,.css,.json,.yaml,.yml,.xml,.csv">
-                        </div>
-                        <div class="file-list" id="fileList"></div>
-                        <textarea id="docContent"
-                                  placeholder="或直接粘贴文档内容..." style="margin-top: 8px;"></textarea>
-                        <input type="text" id="docQuestion"
-                               placeholder="基于文档提出你的问题..." style="margin-top: 8px;">
-                        <div style="margin-top: 12px; text-align: right;">
-                            <button class="btn btn-primary" onclick="startDocQA()">
-                                ❓ 提问
-                            </button>
-                        </div>
-                    </div>
-                    <div class="loading" id="docQaLoading">
-                        <div class="spinner"></div> AI 正在分析文档...
-                    </div>
-                    <div class="result-card" id="docQaResult">
-                        <h3>📄 文档问答</h3>
-                        <div class="markdown-content" id="docQaAnswer"></div>
-                    </div>
-                </div>
-
-                <!-- Panel: General Chat -->
-                <div class="panel" id="panel-chat">
-                    <p class="panel-desc">与 Hy3 大模型自由对话。</p>
-                    <div class="input-card">
-                        <textarea id="chatInput" placeholder="输入你想问的任何问题..."></textarea>
-                        <div style="margin-top: 12px; text-align: right;">
-                            <button class="btn btn-primary" onclick="startChat()">
-                                ✨ 发送
-                            </button>
-                        </div>
-                    </div>
-                    <div class="loading" id="chatLoading">
-                        <div class="spinner"></div> Hy3 正在思考...
-                    </div>
-                    <div class="result-card" id="chatResult">
-                        <h3>💬 对话回复</h3>
-                        <div class="markdown-content" id="chatReply"></div>
-                    </div>
-                </div>
-            </div>
+  <!-- Content -->
+  <div class="content">
+    <!-- Chat Panel -->
+    <div class="panel active" id="panel-chat">
+      <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-empty" id="chatEmpty">
+            <div class="emoji">🔮</div>
+            <h2>Hy3 Research Assistant</h2>
+            <p>基于腾讯混元 Hy3 大模型的智能研究助手。支持深度研究、代码审查、文档问答等多种智能任务。</p>
+          </div>
         </div>
+        <div class="chat-input-area">
+          <textarea id="chatInput" rows="1" placeholder="输入消息，Enter 发送，Shift+Enter 换行…" onkeydown="handleChatKey(event)"></textarea>
+          <button class="btn-send" id="chatSend" onclick="sendChat()" title="发送">➤</button>
+        </div>
+      </div>
     </div>
 
-    <!-- Toast -->
-    <div class="toast" id="toast"></div>
+    <!-- Research Panel -->
+    <div class="panel" id="panel-research">
+      <h2 class="panel-title">🔍 深度研究</h2>
+      <p class="panel-desc">自动搜索互联网 + Hy3 综合分析，生成研究报告。</p>
+      <textarea id="researchQuery" class="code-input" style="min-height:80px" placeholder="输入你的研究课题…"></textarea>
+      <button class="btn" id="researchBtn" onclick="doResearch()">开始研究</button>
+      <div class="result-box" id="researchResult" style="display:none"></div>
+    </div>
 
-    <script>
-        // ==================== Navigation ====================
-        const panels = {
-            research: { title: '🔬 深度研究', panel: 'panel-research' },
-            'code-review': { title: '💻 代码分析', panel: 'panel-code-review' },
-            'doc-qa': { title: '📄 文档问答', panel: 'panel-doc-qa' },
-            chat: { title: '💬 通用对话', panel: 'panel-chat' },
-        };
+    <!-- Agent Panel -->
+    <div class="panel" id="panel-agent">
+      <h2 class="panel-title">🤖 Agent 模式</h2>
+      <p class="panel-desc">Hy3 智能体：可执行代码、搜索信息、解析文件。</p>
+      <textarea id="agentQuery" class="code-input" style="min-height:80px" placeholder="描述你要完成的任务…"></textarea>
+      <button class="btn" id="agentBtn" onclick="doAgent()">启动 Agent</button>
+      <div class="result-box" id="agentResult" style="display:none"></div>
+    </div>
 
-        document.querySelectorAll('.nav-item').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+    <!-- Code Review Panel -->
+    <div class="panel" id="panel-code-review">
+      <h2 class="panel-title">📝 代码审查</h2>
+      <p class="panel-desc">从正确性、安全性、性能、可维护性、最佳实践五个维度审查代码。</p>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="codeLang" style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:var(--radius-sm);font-size:13px">
+          <option value="python">Python</option>
+          <option value="javascript">JavaScript</option>
+          <option value="typescript">TypeScript</option>
+          <option value="java">Java</option>
+          <option value="cpp">C++</option>
+          <option value="go">Go</option>
+          <option value="rust">Rust</option>
+        </select>
+      </div>
+      <textarea id="codeInput" class="code-input" placeholder="粘贴你的代码…"></textarea>
+      <button class="btn" id="reviewBtn" onclick="doCodeReview()">开始审查</button>
+      <div class="result-box" id="reviewResult" style="display:none"></div>
+    </div>
 
-                const key = btn.dataset.panel;
-                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-                document.getElementById(panels[key].panel).classList.add('active');
-                document.getElementById('headerTitle').textContent = panels[key].title;
-            });
-        });
+    <!-- File QA Panel -->
+    <div class="panel" id="panel-file-qa">
+      <h2 class="panel-title">📄 文件问答</h2>
+      <p class="panel-desc">上传文件（PDF/DOCX/TXT/MD），基于文件内容进行智能问答。</p>
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+        <div style="font-size:32px;margin-bottom:8px">📁</div>
+        <div>点击选择文件或拖拽到此处</div>
+        <div style="font-size:12px;margin-top:4px">支持 PDF / DOCX / TXT / MD</div>
+        <input type="file" id="fileInput" accept=".pdf,.docx,.txt,.md,.py,.js,.ts,.java,.go,.rs,.json,.yaml,.yml" onchange="handleFileSelect(event)">
+      </div>
+      <div id="fileInfo" style="display:none;padding:12px;background:var(--card);border-radius:var(--radius-sm);font-size:13px;color:var(--green)"></div>
+      <textarea id="fileQuery" class="code-input" style="min-height:80px" placeholder="输入关于该文件的问题…"></textarea>
+      <button class="btn" id="fileQaBtn" onclick="doFileQA()">提交问题</button>
+      <div class="result-box" id="fileQaResult" style="display:none"></div>
+    </div>
+  </div>
+</div>
 
-        // ==================== Toast ====================
-        function showToast(msg, type = '') {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.className = 'toast ' + type + ' show';
-            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+<script>
+// === State ===
+let currentPanel = 'chat';
+let chatHistory = [];
+let isStreaming = false;
+let uploadedFileContent = null;
+
+// === Panel Switching ===
+document.querySelectorAll('.sidebar-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentPanel = btn.dataset.panel;
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + currentPanel).classList.add('active');
+  });
+});
+
+// === Chat ===
+function handleChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChat();
+  }
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg || isStreaming) return;
+  input.value = '';
+  document.getElementById('chatEmpty')?.remove();
+
+  appendMessage('user', msg);
+  chatHistory.push({ role: 'user', content: msg });
+
+  const assistantDiv = appendMessage('assistant', '', true);
+  const bubble = assistantDiv.querySelector('.message-bubble');
+
+  isStreaming = true;
+  document.getElementById('chatSend').disabled = true;
+
+  try {
+    const resp = await fetch('/api/chat/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: chatHistory.slice(-20) })
+    });
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let fullResponse = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const text = decoder.decode(value, { stream: true });
+      for (const line of text.split('\n')) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') break;
+          try {
+            const { token } = JSON.parse(data);
+            fullResponse += token;
+            bubble.innerHTML = escapeHtml(fullResponse) + '<span class="streaming-cursor"></span>';
+            scrollDown();
+          } catch {}
         }
+      }
+    }
+    bubble.innerHTML = escapeHtml(fullResponse);
+    bubble.querySelector('.streaming-cursor')?.remove();
+    chatHistory.push({ role: 'assistant', content: fullResponse });
+  } catch (err) {
+    bubble.textContent = '连接出错: ' + err.message;
+  } finally {
+    isStreaming = false;
+    document.getElementById('chatSend').disabled = false;
+    input.focus();
+  }
+}
 
-        // ==================== API Helpers ====================
-        async function apiCall(endpoint, body, formData = false) {
-            const options = {
-                method: 'POST',
-            };
-            if (formData) {
-                options.body = body;
-            } else {
-                options.headers = { 'Content-Type': 'application/json' };
-                options.body = JSON.stringify(body);
-            }
+function appendMessage(role, text, withCursor) {
+  const container = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'message ' + role;
+  div.innerHTML = `
+    <div class="message-avatar">${role === 'user' ? '👤' : '🔮'}</div>
+    <div class="message-bubble">${escapeHtml(text)}${withCursor ? '<span class="streaming-cursor"></span>' : ''}</div>
+  `;
+  container.appendChild(div);
+  scrollDown();
+  return div;
+}
 
-            const resp = await fetch('/api' + endpoint, options);
-            if (!resp.ok) {
-                const err = await resp.json();
-                throw new Error(err.detail || '请求失败');
+function scrollDown() {
+  const el = document.getElementById('chatMessages');
+  el.scrollTop = el.scrollHeight;
+}
+
+// === Research ===
+async function doResearch() {
+  const query = document.getElementById('researchQuery').value.trim();
+  if (!query) return;
+  const btn = document.getElementById('researchBtn');
+  const box = document.getElementById('researchResult');
+  btn.disabled = true;
+  box.style.display = 'block';
+  box.textContent = '搜索中…';
+
+  try {
+    const resp = await fetch('/api/research', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let result = '';
+    let hasSearch = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const text = decoder.decode(value, { stream: true });
+      for (const line of text.split('\n')) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') break;
+          try {
+            const msg = JSON.parse(data);
+            if (msg.phase === 'search') {
+              box.innerHTML = '<strong>搜索结果：</strong>\n\n' + escapeHtml(msg.content);
+              hasSearch = true;
+            } else if (msg.token) {
+              if (hasSearch) {
+                result += msg.token;
+                box.innerHTML = result ? escapeHtml(result) : '';
+                hasSearch = false;
+              } else {
+                result += msg.token;
+                box.textContent = result;
+              }
             }
-            return resp.json();
+          } catch {}
         }
+      }
+    }
+  } catch (err) {
+    box.textContent = '研究失败: ' + err.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
 
-        function renderMarkdown(text) {
-            // Simple markdown rendering
-            return text
-                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-                .replace(/^# (.+)$/gm, '<h2>$1</h2>')
-                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.+?)\*/g, '<em>$1</em>')
-                .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
-                .replace(/`([^`]+)`/g, '<code>$1</code>')
-                .replace(/^- (.+)$/gm, '<li>$1</li>')
-                .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
-                .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
-                .replace(/\n\n/g, '</p><p>')
-                .replace(/\n/g, '<br>');
+// === Agent ===
+async function doAgent() {
+  const query = document.getElementById('agentQuery').value.trim();
+  if (!query) return;
+  const btn = document.getElementById('agentBtn');
+  const box = document.getElementById('agentResult');
+  btn.disabled = true;
+  box.style.display = 'block';
+  box.textContent = '';
+
+  try {
+    const resp = await fetch('/api/agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let result = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const text = decoder.decode(value, { stream: true });
+      for (const line of text.split('\n')) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') break;
+          try {
+            const { token } = JSON.parse(data);
+            result += token;
+            box.textContent = result;
+          } catch {}
         }
+      }
+    }
+  } catch (err) {
+    box.textContent = 'Agent 执行失败: ' + err.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
 
-        // ==================== Deep Research ====================
-        async function startResearch() {
-            const topic = document.getElementById('researchTopic').value.trim();
-            if (!topic) return showToast('请输入研究主题', 'error');
+// === Code Review ===
+async function doCodeReview() {
+  const code = document.getElementById('codeInput').value.trim();
+  if (!code) return;
+  const lang = document.getElementById('codeLang').value;
+  const btn = document.getElementById('reviewBtn');
+  const box = document.getElementById('reviewResult');
+  btn.disabled = true;
+  box.style.display = 'block';
+  box.textContent = '审查中…';
 
-            const loading = document.getElementById('researchLoading');
-            const result = document.getElementById('researchResult');
-            const reportEl = document.getElementById('researchReport');
-            const sourcesEl = document.getElementById('researchSources');
+  try {
+    const resp = await fetch('/api/code-review', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, language: lang })
+    });
+    const data = await resp.json();
+    box.textContent = data.review || '未获取到审查结果';
+  } catch (err) {
+    box.textContent = '审查失败: ' + err.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
 
-            loading.classList.add('active');
-            result.classList.remove('visible');
+// === File QA ===
+let uploadedFilename = '';
+async function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const infoDiv = document.getElementById('fileInfo');
+  infoDiv.style.display = 'block';
+  infoDiv.textContent = '正在解析…';
 
-            try {
-                const data = await apiCall('/research', { topic, search_depth: 10 });
-                reportEl.innerHTML = '<p>' + renderMarkdown(data.report) + '</p>';
+  const formData = new FormData();
+  formData.append('file', file);
 
-                let sourcesHtml = '<h4>📚 参考资料 (共 ' + data.sources.length + ' 条)</h4>';
-                data.sources.forEach(s => {
-                    sourcesHtml += '<div class="source-item">' +
-                        '<div class="source-title">' + s.title + '</div>' +
-                        '<div class="source-snippet">' + s.snippet + '</div>' +
-                        (s.url ? '<div class="source-snippet" style="margin-top:2px">🔗 ' + s.url + '</div>' : '') +
-                        '</div>';
-                });
-                sourcesEl.innerHTML = sourcesHtml;
-                result.classList.add('visible');
-            } catch (e) {
-                showToast(e.message, 'error');
-            } finally {
-                loading.classList.remove('active');
-            }
+  try {
+    const resp = await fetch('/api/parse-file', { method: 'POST', body: formData });
+    const data = await resp.json();
+    uploadedFileContent = data.text;
+    uploadedFilename = data.filename;
+    infoDiv.style.color = 'var(--green)';
+    infoDiv.textContent = `✅ ${uploadedFilename} 解析完成 (${uploadedFileContent.length} 字符)`;
+  } catch (err) {
+    infoDiv.style.color = 'var(--red)';
+    infoDiv.textContent = '解析失败: ' + err.message;
+  }
+}
+
+async function doFileQA() {
+  const query = document.getElementById('fileQuery').value.trim();
+  if (!query || !uploadedFileContent) return;
+  const box = document.getElementById('fileQaResult');
+  box.style.display = 'block';
+  box.textContent = '分析中…';
+
+  try {
+    const resp = await fetch('/api/research', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, context_docs: [uploadedFileContent] })
+    });
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let result = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const text = decoder.decode(value, { stream: true });
+      for (const line of text.split('\n')) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') break;
+          try {
+            const msg = JSON.parse(data);
+            if (msg.token) { result += msg.token; box.textContent = result; }
+          } catch {}
         }
+      }
+    }
+  } catch (err) {
+    box.textContent = '问答失败: ' + err.message;
+  }
+}
 
-        // ==================== Code Review ====================
-        async function startCodeReview() {
-            const code = document.getElementById('codeInput').value.trim();
-            if (!code) return showToast('请输入代码', 'error');
-
-            const loading = document.getElementById('codeReviewLoading');
-            const result = document.getElementById('codeReviewResult');
-            const reportEl = document.getElementById('codeReviewReport');
-            const lang = document.getElementById('codeLanguage').value.trim();
-
-            loading.classList.add('active');
-            result.classList.remove('visible');
-
-            try {
-                const data = await apiCall('/code-review', { code, language: lang });
-                reportEl.innerHTML = '<p>' + renderMarkdown(data.review) + '</p>';
-                result.classList.add('visible');
-            } catch (e) {
-                showToast(e.message, 'error');
-            } finally {
-                loading.classList.remove('active');
-            }
-        }
-
-        // ==================== Document Q&A ====================
-        let uploadedFiles = [];
-
-        // File upload
-        document.getElementById('fileInput').addEventListener('change', handleFiles);
-        const dropArea = document.getElementById('fileDropArea');
-
-        dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.classList.add('drag-over'); });
-        dropArea.addEventListener('dragleave', () => { dropArea.classList.remove('drag-over'); });
-        dropArea.addEventListener('drop', e => {
-            e.preventDefault();
-            dropArea.classList.remove('drag-over');
-            handleFilesFromDataTransfer(e.dataTransfer.files);
-        });
-
-        function handleFiles(e) { handleFilesFromDataTransfer(e.target.files); }
-
-        function handleFilesFromDataTransfer(files) {
-            const fileList = document.getElementById('fileList');
-            for (const f of files) {
-                if (uploadedFiles.find(x => x.name === f.name)) continue;
-                uploadedFiles.push(f);
-                const tag = document.createElement('span');
-                tag.className = 'file-tag';
-                tag.innerHTML = '📎 ' + f.name +
-                    '<span class="remove-file" data-name="' + f.name + '">&times;</span>';
-                tag.querySelector('.remove-file').addEventListener('click', function() {
-                    uploadedFiles = uploadedFiles.filter(x => x.name !== this.dataset.name);
-                    tag.remove();
-                });
-                fileList.appendChild(tag);
-            }
-        }
-
-        async function startDocQA() {
-            const question = document.getElementById('docQuestion').value.trim();
-            const docContent = document.getElementById('docContent').value.trim();
-            if (!question) return showToast('请输入问题', 'error');
-            if (!docContent && uploadedFiles.length === 0) return showToast('请上传文件或粘贴文档内容', 'error');
-
-            const loading = document.getElementById('docQaLoading');
-            const result = document.getElementById('docQaResult');
-            const answerEl = document.getElementById('docQaAnswer');
-
-            loading.classList.add('active');
-            result.classList.remove('visible');
-
-            try {
-                const formData = new FormData();
-                formData.append('question', question);
-                if (docContent) formData.append('doc_content', docContent);
-                if (uploadedFiles.length > 0) {
-                    formData.append('file', uploadedFiles[0]);
-                    formData.append('doc_name', uploadedFiles[0].name);
-                }
-
-                const data = await apiCall('/doc-qa', formData, true);
-                answerEl.innerHTML = '<p>' + renderMarkdown(data.answer) + '</p>';
-                result.classList.add('visible');
-            } catch (e) {
-                showToast(e.message, 'error');
-            } finally {
-                loading.classList.remove('active');
-            }
-        }
-
-        // ==================== General Chat ====================
-        async function startChat() {
-            const input = document.getElementById('chatInput').value.trim();
-            if (!input) return showToast('请输入内容', 'error');
-
-            const loading = document.getElementById('chatLoading');
-            const result = document.getElementById('chatResult');
-            const replyEl = document.getElementById('chatReply');
-
-            loading.classList.add('active');
-            result.classList.remove('visible');
-
-            try {
-                const data = await apiCall('/chat', {
-                    messages: [{ role: 'user', content: input }],
-                });
-                replyEl.innerHTML = '<p>' + renderMarkdown(data.content) + '</p>';
-                result.classList.add('visible');
-            } catch (e) {
-                showToast(e.message, 'error');
-            } finally {
-                loading.classList.remove('active');
-            }
-        }
-
-        // ==================== Keyboard shortcuts ====================
-        document.addEventListener('keydown', e => {
-            if (e.ctrlKey && e.key === 'Enter') {
-                e.preventDefault();
-                const activePanel = document.querySelector('.panel.active');
-                if (activePanel.id === 'panel-research') startResearch();
-                else if (activePanel.id === 'panel-code-review') startCodeReview();
-                else if (activePanel.id === 'panel-doc-qa') startDocQA();
-                else if (activePanel.id === 'panel-chat') startChat();
-            }
-        });
-    </script>
+function escapeHtml(text) {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+  return text.replace(/[&<>"']/g, c => map[c]);
+}
+</script>
 </body>
 </html>
