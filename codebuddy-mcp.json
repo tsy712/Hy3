@@ -1,11 +1,13 @@
 {
   "mcpServers": {
-    "hy3": {
+    "hy3-assistant": {
+      "type": "stdio",
       "command": "python",
       "args": ["src/server.py"],
-      "cwd": "${workspaceFolder}/hy3-mcp-server",
+      "cwd": "C:/Users/谭晟毅-pc/Desktop/hy3-mcp-server",
       "env": {
-        "HY3_API_KEY": "your-api-key-here"
+        "HY3_API_KEY": "你的API密钥",
+        "HY3_MODEL": "hunyuan-pro"
       }
     }
   }

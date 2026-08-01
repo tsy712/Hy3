@@ -1,11 +1,12 @@
 {
   "mcpServers": {
-    "hy3": {
+    "hy3-assistant": {
       "command": "python",
       "args": ["src/server.py"],
       "cwd": "/path/to/hy3-mcp-server",
       "env": {
-        "HY3_API_KEY": "your-api-key-here"
+        "HY3_API_KEY": "你的API密钥",
+        "HY3_MODEL": "hunyuan-pro"
       }
     }
   }

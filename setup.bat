@@ -16,14 +16,14 @@ if %errorlevel% neq 0 (
 echo [信息] Python 已检测到
 echo.
 
-REM 检查 API Key
+REM 检查 API Key 或 .env 文件
 if "%HY3_API_KEY%"=="" (
     if not exist ".env" (
         echo [警告] 未设置 HY3_API_KEY 环境变量，且未找到 .env 文件
         echo.
         echo 请先设置 API Key（二选一）：
         echo   方式1: set HY3_API_KEY=你的API密钥
-        echo   方式2: copy .env.example .env 并填入密钥
+        echo   方式2: 复制 .env.example 为 .env 并填入密钥
         echo.
     ) else (
         echo [信息] 检测到 .env 配置文件
@@ -35,14 +35,15 @@ echo.
 
 REM 安装依赖
 echo [信息] 正在安装依赖...
+cd /d "%~dp0"
 pip install -r requirements.txt -q
 echo.
 
-REM 验证
+REM 验证安装
 echo [信息] 正在验证安装...
-python -c "from fastmcp import FastMCP; print('  [OK] FastMCP')" 2>nul || echo "  [FAIL] FastMCP"
-python -c "from openai import OpenAI; print('  [OK] OpenAI SDK')" 2>nul || echo "  [FAIL] OpenAI SDK"
-python -c "import httpx; print('  [OK] httpx')" 2>nul || echo "  [FAIL] httpx"
+python -c "from fastmcp import FastMCP; print('  [OK] FastMCP')" 2>nul
+python -c "from openai import OpenAI; print('  [OK] OpenAI SDK')" 2>nul
+python -c "import httpx; print('  [OK] httpx')" 2>nul
 echo.
 
 echo ==============================================
