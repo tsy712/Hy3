@@ -5,47 +5,39 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "hy3-mcp-server"
 version = "1.0.0"
-description = "Hy3 MCP Server — 将腾讯混元 Hy3 大模型接入 MCP 协议，让 Claude Desktop / Cursor 等客户端直接调用 Hy3 的能力。"
-authors = [{ name = "Hy3 MCP Server Team" }]
+description = "Hy3 MCP Server — 一键安装、即插即用到任何支持 MCP 的 AI 客户端"
+authors = [{ name = "Hy3 MCP Team" }]
 license = { text = "MIT" }
 readme = "README.md"
-requires-python = ">=3.10"
-keywords = ["hy3", "hunyuan", "mcp", "model-context-protocol", "fastmcp", "llm"]
+requires-python = ">=3.9"
+keywords = ["mcp", "hy3", "hunyuan", "ai-tools", "code-review", "search"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 
 dependencies = [
-    "fastmcp>=2.0.0",
     "openai>=1.50.0",
     "httpx>=0.28.0",
+    "fastmcp>=2.0.0",
     "python-dotenv>=1.0.0",
+    "PyPDF2>=3.0.0",
+    "python-docx>=1.1.0",
+    "beautifulsoup4>=4.12.0",
+    "lxml>=5.3.0",
 ]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=8",
-    "pytest-asyncio>=0.24",
-    "black>=24",
-]
-
-[project.urls]
-Homepage = "https://github.com/Tencent-Hunyuan/Hy3"
-Issues = "https://github.com/Tencent-Hunyuan/Hy3/issues"
 
 [project.scripts]
-hy3-mcp = "hy3_mcp_server.server:main"
+hy3-mcp = "src.server:main"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
 
 [tool.setuptools.package-dir]
-"hy3_mcp_server" = "src"
+"src" = "src"
