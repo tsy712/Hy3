@@ -3,62 +3,41 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "hy3-research-assistant"
+name = "hy3-mcp-server"
 version = "1.0.0"
-description = "基于腾讯混元 Hy3 大模型的智能研究助手 — 深度研究、代码分析、文档问答，并附带 MCP Server 一键集成 AI 客户端。"
-authors = [{ name = "Hy3 Research Assistant Team" }]
+description = "Hy3 MCP Server — 一键安装、即插即用到任何支持 MCP 的 AI 客户端"
+authors = [{ name = "Hy3 MCP Team" }]
 license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.9"
-keywords = ["hy3", "hunyuan", "research", "llm", "ai-assistant", "deep-research", "mcp", "code-review", "document-qa"]
+keywords = ["mcp", "hy3", "hunyuan", "ai-tools", "code-review", "search"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 
 dependencies = [
-    "fastapi>=0.115.0",
-    "uvicorn>=0.34.0",
-    "uvicorn[standard]>=0.34.0",
     "openai>=1.50.0",
-    "python-multipart>=0.0.18",
-    "aiofiles>=24.0.0",
-    "PyPDF2>=3.0.0",
-    "python-docx>=1.1.0",
     "httpx>=0.28.0",
-    "pydantic>=2.10.0",
-    "beautifulsoup4>=4.12.0",
-    "lxml>=5.3.0",
     "fastmcp>=2.0.0",
     "python-dotenv>=1.0.0",
+    "PyPDF2>=3.0.0",
+    "python-docx>=1.1.0",
+    "beautifulsoup4>=4.12.0",
+    "lxml>=5.3.0",
 ]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=8",
-    "pytest-asyncio>=0.24",
-    "black>=24",
-]
-
-[project.urls]
-Homepage = "https://github.com/Tencent-Hunyuan/Hy3"
-Issues = "https://github.com/Tencent-Hunyuan/Hy3/issues"
 
 [project.scripts]
-hy3-research = "backend.cli:main"
+hy3-mcp = "src.server:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
 
 [tool.setuptools.package-dir]
-"backend" = "backend"
-"hy3_mcp_server" = "hy3-mcp-server/src"
+"src" = "src"
