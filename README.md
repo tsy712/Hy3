@@ -1,61 +1,64 @@
-# Hy3 MCP Server v2 (Async)
+# Hy3 MCP Server
 
-> **版本说明**: 这是 Hy3 MCP Server 的 v2 异步架构版本，与 v1 同步版并存。
+封装腾讯混元 Hy3 大模型能力的 MCP 工具集，一键安装、即插即用到任何支持 MCP 的 AI 客户端。
 
-## 主要改进 (相比 v1)
+---
 
-| 特性 | v1 (同步) | v2 (异步) |
-|------|-----------|-----------|
-| **执行模型** | 同步阻塞调用 Hy3 API | 异步 asyncio + httpx AsyncClient |
-| **并发能力** | 串行处理，一次一个请求 | 可并发调用，提高吞吐量 |
-| **Python 要求** | Python 3.9+ | Python 3.10+ |
-| **MCP 工具** | 5 个 Tool | 5 个 Tool (相同功能) |
-| **包管理** | 手动 setup.bat | pip install -e . (pyproject.toml) |
-| **测试** | 基础测试 | 完整 pytest 测试套件 |
+## 快速安装
 
-## 项目结构
-
-```
-v2-async/
-├── src/
-│   ├── __init__.py
-│   ├── server.py          # 异步 MCP Server (FastMCP)
-│   ├── hy3_client.py      # 异步 Hy3 API 客户端 (httpx)
-│   └── tools.py           # 异步工具函数
-├── configs/
-│   └── *.json             # MCP 客户端配置参考
-├── tests/                 # pytest 单元测试
-│   ├── test_server.py
-│   └── test_hy3_client.py
-├── pyproject.toml          # pip 安装配置
-├── requirements.txt        # Python 依赖
-└── README.md
+### Windows
+```bat
+install.bat
 ```
 
-## 快速开始
-
+### Linux/macOS
 ```bash
-cd v2-async
-pip install -e .
-
-# 设置 API Key
-set HY3_API_KEY=你的API密钥  # Windows
-# export HY3_API_KEY=你的API密钥  # macOS/Linux
-
-# 运行 MCP Server
-hy3-mcp
+chmod +x install.sh && ./install.sh
 ```
 
-## 技术细节
+### 手动安装
+```bash
+pip install -e .
+```
 
-- **MCP 框架**: Python FastMCP (异步支持)
-- **HTTP 客户端**: httpx.AsyncClient
-- **Hy3 API**: OpenAI 兼容异步接口
-- **传输模式**: stdio (标准 MCP 传输)
+### 设置 API Key
 
-## 版本历史
+复制并编辑 `.env` 文件：
+```bash
+cp ../.env.example .env
+# 编辑 .env，填入 HY3_API_KEY
+```
 
-- **v1**: 同步版，适合简单场景，Python 3.9+，更稳定
-- **v2**: 异步版，适合高并发场景，Python 3.10+，性能更好
+---
 
-> 📌 **选择建议**: v1 同步版更稳定，兼容性更好，推荐新手使用。v2 异步版适合需要处理大量并发请求的场景。
+## MCP 工具
+
+| 工具 | 功能 |
+|------|------|
+| `hy3_chat` | Hy3 大模型对话 |
+| `hy3_search` | 互联网搜索 (DuckDuckGo) |
+| `hy3_fetch_web` | 网页内容抓取 |
+| `hy3_code_review` | 代码审查 (5维度) |
+| `hy3_parse_file` | 文件解析 (PDF/DOCX/TXT) |
+| `hy3_execute_code` | 安全 Python 代码执行 |
+| `hy3_embed` | 文本向量化 |
+
+---
+
+## 客户端配置
+
+### CodeBuddy
+复制 `configs/codebuddy-mcp.json` 配置到 CodeBuddy MCP 设置。
+
+### Claude Desktop
+复制 `configs/claude-desktop-mcp.json` 配置到 `claude_desktop_config.json`。
+
+### Cursor
+复制 `configs/cursor-mcp.json` 配置到 Cursor MCP 设置。
+
+---
+
+## 手动测试
+```bash
+python -m src.server
+```

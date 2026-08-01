@@ -1,48 +1,48 @@
 @echo off
 chcp 65001 >nul
-title Hy3 Research Assistant
-
-echo ============================================
-echo   Hy3 Research Assistant — 腾讯混元智能研究助手
-echo ============================================
+echo ========================================
+echo   Hy3 研究助手 一键启动
+echo ========================================
 echo.
 
-:: Check Python
-where python >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [ERROR] Python 未安装！请先安装 Python 3.9+
+cd /d "%~dp0"
+
+REM 优先从 .env 文件加载 HY3_API_KEY
+if exist ".env" (
+    for /f "usebackq tokens=1,* delims==" %%a in (".env") do (
+        if "%%a"=="HY3_API_KEY" set HY3_API_KEY=%%b
+    )
+)
+
+REM 检查 API Key
+if "%HY3_API_KEY%"=="" (
+    echo [错误] 未检测到 HY3_API_KEY
+    echo.
+    echo 请按以下方式配置：
+    echo   1. 复制 .env.example 为 .env，填写你的 API Key
+    echo   2. 或执行: set HY3_API_KEY=你的API密钥
+    echo.
     pause
     exit /b 1
 )
 
-:: Check .env
-if not exist ".env" (
-    echo [INFO] 未找到 .env 文件，从 .env.example 复制…
-    copy .env.example .env >nul
-    echo [WARN] 请编辑 .env 文件，填入你的 HY3_API_KEY
-    echo.
-)
+echo [信息] API Key 已配置
+echo [信息] 正在检查依赖...
+cd /d "%~dp0backend"
 
-:: Check/Create venv
-if not exist "venv\" (
-    echo [INFO] 创建虚拟环境…
-    python -m venv venv
+REM 检查并安装依赖
+pip install -r requirements.txt -q 2>nul
+if errorlevel 1 (
+    echo [警告] 依赖安装可能存在问题，尝试继续...
 )
-
-:: Activate and install
-call venv\Scripts\activate.bat
-echo [INFO] 安装依赖…
-pip install -q -r requirements.txt
-pip install -q -e .
 
 echo.
-echo [INFO] 启动服务…
-echo   前端: http://localhost:8000
+echo [信息] 启动 Hy3 研究助手服务...
+echo ========================================
+echo   前端页面: http://localhost:8000
 echo   API 文档: http://localhost:8000/docs
+echo   按 Ctrl+C 停止服务
+echo ========================================
 echo.
-echo 按 Ctrl+C 停止
-echo ============================================
-
-python -m backend.cli --host 0.0.0.0 --port 8000
-
+python main.py
 pause
